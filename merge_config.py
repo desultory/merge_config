@@ -14,11 +14,11 @@ import os
 import regex
 
 
-CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_^([a-zA-Z0-9_])+=-?([a-zA-Z0-9\"/])+$])+')
+CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_^([a-zA-Z0-9_])+=-?([a-zA-Z0-9"/])+$])+')
 DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 DEFINE_START = "CONFIG_"
-DEFINE_REGEXR = regex.compile(r'^([a-zA-Z0-9_])+=-?([a-zA-Z0-9\"/])+$')
+DEFINE_REGEXR = regex.compile(r'^([a-zA-Z0-9_])+=-?([a-zA-Z0-9"/])+$')
 UNDEFINE_START = "# CONFIG_"
 UNDEFINE_END = " is not set"
 UNDEFINE_REGEXR = regex.compile(r"^([a-zA-Z0-9_]+)$")
