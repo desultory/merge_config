@@ -290,7 +290,7 @@ if __name__ == '__main__':
 
     write_config(processed_config, out_file_name)
 
-    if not args.n:
+    if not args.m:
         logger.info("Running make on: %s", out_file_name)
         # first load the config before running through make
         script_processed_config = load_config(out_file_name)
