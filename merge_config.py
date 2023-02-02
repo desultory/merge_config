@@ -192,7 +192,7 @@ def make_config(base_file='.config'):
     Runs a kernel.config file through make
     outputs a working .config file for the current kernel version
     """
-    make_args = f"make KCONFIG_ALLCONFIG={base_file} allnoconfig"
+    make_args = f"make KCONFIG_ALLCONFIG={base_file} alldefconfig"
     logger.debug("Args: %s", make_args)
     output = os.system(make_args)
     if output != 0:
