@@ -104,43 +104,108 @@ def line_to_config(file_line):
         raise SyntaxWarning(f"Unable to parse possible config line: {line}")
 
 
-def make_config(base_file='.config'):
-    make_args = f"make KCONFIG_ALLCONFIG={base_file} allnoconfig"
-
-    logger.debug("Args: %s", make_args)
-    output = os.system(make_args)
-    logger.info(output)
-
-
-def process_config(base_file, merge_files, base_configs={}):
+def compare_config(config_a, config_b):
     """
-    Processes the base file into base config
-    Iterates through the merge files and attempts to apply them over the base file
-    returns the merged base file once complete
+    Compare the key differences between config files
+    Config a should be the most complete one, such as the one make generates
+    config b should be one with intended configuration
+    Both objects should be the dict type used in this script
     """
-    # Only run this the first time the script runs
-    if not base_configs:
-        logger.info("Processing the base file: %s", base_file.name)
-        for line in base_file.readlines():
+    for name, config in config_b.values():
+        if name not in config_a:
+            logger.warning("Argument `%s` is defined in config b but is not in config a", name)
+        elif config_a[name] != config:
+            logger.warning("Argument value mismatch: %s", name)
+            logger.warning("Config a value: %s", config_a[name])
+            logger.warning("Config b value: %s", config)
+
+
+def load_config(config_file_name='.config'):
+    """
+    Processes a kernel.config file, returns a dict contaning defined parameters
+    """
+    with open(config_file_name, 'r') as config_file:
+        kernel_config = {}
+        logger.info("Processing the config file: %s", config_file.name)
+        for line in config_file.readlines():
             try:
                 name, config = line_to_config(line)
-                logger.debug("Using config name: %s", name)
+                logger.debug("Detected config name: %s", name)
                 # Ignore undefines in the base config
                 if not config.get('define'):
                     logger.debug("Line is an undefine in the base config, ignoring parameter: %s", name)
                 else:
                     logger.info("Saving parameter: %s=%s", name, config.get('value'))
-                    base_configs[name] = config
+                kernel_config[name] = config
             # Allow the value errors but throw errors
             except ValueError as e:
                 logger.error(e)
             except SyntaxWarning as e:
                 logger.debug(e)
         # Throw a value error if the file could not be processed
-        if not base_file:
-            raise ValueError(f"Failed to load base config from {base_file.name}")
-    else:
-        logger.debug("Not processing the base file as base config is already loaded")
+        if not kernel_config:
+            raise ValueError(f"Failed to load base config from {config_file_name}")
+    return kernel_config
+
+
+def merge_config(merge_file_name, base_config):
+    """
+    Merges a file into the supplied config
+    """
+
+    merged_config = base_config
+    with open(merge_file_name, 'r') as merge_file:
+        for line in merge_file.readlines():
+            try:
+                name, new_config = line_to_config(line)
+                if name in base_config:
+                    logger.info("Parameter: %s already detected in base config", name)
+                    logger.info("Current value: %s", base_config.get(name).get('value'))
+                    if new_config.get('define'):
+                        logger.info("New value: %s", new_config.get('value'))
+                        merged_config[name] = new_config
+                    else:
+                        logger.info("Deleting config entry for parameter: %s", name)
+                        del merged_config[name]
+                else:
+                    logger.info("Parameter: %s is new", name)
+                    if new_config.get('define'):
+                        logger.info("New value: %s", new_config.get('value'))
+                        merged_config[name] = new_config
+                    else:
+                        logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
+            except ValueError as e:
+                logger.error(e)
+            except SyntaxWarning as e:
+                logger.debug(e)
+
+    if merged_config == base_config:
+        logger.warning("No changed detected after merging: %s", merge_file_name)
+
+    return merged_config
+
+
+def make_config(base_file='.config'):
+    """
+    Runs a kernel.config file through make
+    outputs a working .config file for the current kernel version
+    """
+    make_args = f"make KCONFIG_ALLCONFIG={base_file} allnoconfig"
+    logger.debug("Args: %s", make_args)
+    output = os.system(make_args)
+    if output != 0:
+        raise RuntimeError(f"Unable to run make command, args: {make_args}")
+
+
+def process_config(base_file_name, merge_files, processed_config={}):
+    """
+    Processes the base file into base config
+    Iterates through the merge files and attempts to apply them over the base file
+    returns the merged base file once complete
+    """
+    # Load the base config from the passed base config file if it's not defined
+    if not processed_config:
+        processed_config = load_config(base_file_name)
 
     # Keep processing merge files while the list is populated
     # Item entries are popped from the list when processing has started
@@ -148,48 +213,26 @@ def process_config(base_file, merge_files, base_configs={}):
     # Sections are applied over the base config as they are processed
     if merge_files:
         merge_file = merge_files.pop(0)
-        for line in merge_file.readlines():
-            try:
-                name, new_config = line_to_config(line)
-                if name in base_configs:
-                    logger.info("Parameter: %s already detected in base config", name)
-                    logger.info("Current value: %s", base_configs.get(name).get('value'))
-                    if new_config.get('define'):
-                        logger.info("New value: %s", new_config.get('value'))
-                        base_configs[name] = new_config
-                    else:
-                        logger.info("Deleting config entry for parameter: %s", name)
-                        del base_configs[name]
-                else:
-                    logger.info("Parameter: %s is new", name)
-                    if new_config.get('define'):
-                        logger.info("New value: %s", new_config.get('value'))
-                        base_configs[name] = new_config
-                    else:
-                        logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
-            except ValueError as e:
-                logger.error(e)
-            except SyntaxWarning as e:
-                logger.debug(e)
-        process_config(base_file, merge_files, base_configs)
+        processed_config = merge_config(merge_file, processed_config)
+        process_config(base_file_name, merge_files, processed_config)
     else:
         logger.info("Merging has completed")
-    return base_configs
+    return processed_config
 
 
-def write_config(config_dict, out_file):
+def write_config(config_dict, out_file_name):
     """
     Takes a dictionary where the name is the parameter name, and the value is the parameter value
     writes as CONFIG_{name}={value}
     """
-    logger.info("Writing config file: %s", out_file)
-    with open(out_file, 'w') as file:
-        file.write("## Starting config\n")
+    logger.info("Writing config file: %s", out_file_name)
+    with open(out_file_name, 'w') as out_file:
+        out_file.write("## Starting config\n")
         for name, items in config_dict.items():
             value = items.get('value')
-            file.write(f"CONFIG_{name}={value}\n")
-        file.write("## Ending config\n")
-    logger.info("Wrote config file: %s", out_file)
+            out_file.write(f"CONFIG_{name}={value}\n")
+        out_file.write("## Ending config\n")
+    logger.info("Wrote config file: %s", out_file_name)
 
 
 if __name__ == '__main__':
@@ -213,11 +256,11 @@ if __name__ == '__main__':
     # If this is the only argument, use it as the merge file,
     # using the DEFAULT_CONFIG as the base file
     parser.add_argument('base_file',
-                        type=argparse.FileType('r'),
+                        type=str,
                         help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
     # Then take the rest of the arguments as files to open
     parser.add_argument('merge_files',
-                        type=argparse.FileType('r'),
+                        type=str,
                         nargs='*',
                         help="Files to be merged")
     args = parser.parse_args()
@@ -232,23 +275,31 @@ if __name__ == '__main__':
     # move the passed base file to the merge files
     if not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG)
-        base_file = open(DEFAULT_CONFIG, 'r', encoding='utf-8')
+        base_file_name = DEFAULT_CONFIG
         merge_files.append(args.base_file)
         # if -d is passed, and there are still merge files, add them
         if args.merge_files:
             merge_files += args.merge_files
     else:
-        logger.info("Using %s as the base config file", args.base_file.name)
-        base_file = args.base_file
+        logger.info("Using %s as the base config file", args.base_file_name)
+        base_file_name = args.base_file
         merge_files = args.merge_files
 
     for file in merge_files:
-        logger.info("Considering file %s for merge", file.name)
+        logger.info("Considering file %s for merge", file)
 
-    out_file = args.o if args.o else DEFAULT_OUT_FILE
-    logger.debug("Set the output file to: %s", out_file)
-    processed_config = process_config(base_file, merge_files)
-    write_config(processed_config, out_file)
+    out_file_name = args.o if args.o else DEFAULT_OUT_FILE
+    logger.debug("Set the output file to: %s", out_file_name)
+    processed_config = process_config(base_file_name, merge_files)
+
+    write_config(processed_config, out_file_name)
+
     if args.m:
-        logger.info("Running make on: %s", out_file)
-        make_config(out_file)
+        logger.info("Running make on: %s", out_file_name)
+        # first load the config before running through make
+        script_processed_config = load_config(out_file_name)
+        make_config(out_file_name)
+        # Load the config after it has been processed through make
+        processed_config = load_config(out_file_name)
+        compare_config(processed_config, script_processed_config)
+
