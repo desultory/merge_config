@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
+"""
+Python implementation of the linux kernel merge-config kconfig bash script
+The main difference is that this does not run make at the end
+This means the output of this file may not reflect the parameters used by make
 
+This can be accomplished by running make KCONFIG_ALLCONFIG={config_file}
+
+
+"""
 
 from CustomFormatter import CustomFormatter
 import argparse
@@ -44,8 +52,8 @@ def line_to_config(file_line):
     """
     # Do a basic string clean
     line = file_line.rstrip()
-    # Every kernel parameter should have "CONFIG" present
-    # If it does not, raise a value error
+    # Every kernel parameter should have "CONFIG_ABC_XYZ" present
+    # If it does not, raise a SyntaxWarning
     if not regex.search(CONFIG_REGEXR, line):
         raise SyntaxWarning(f"`{line}` does not seem to be a kernel .config parameter")
     # Define should be implied, gets unset by undefinitions
@@ -118,6 +126,8 @@ def process_config(base_file, merge_files, base_configs={}):
             # Allow the value errors but throw errors
             except ValueError as e:
                 logger.error(e)
+            except SyntaxWarning as e:
+                logger.debug(e)
         # Throw a value error if the file could not be processed
         if not base_file:
             raise ValueError(f"Failed to load base config from {base_file.name}")
@@ -136,7 +146,6 @@ def process_config(base_file, merge_files, base_configs={}):
                 if name in base_configs:
                     logger.info("Parameter: %s already detected in base config", name)
                     logger.info("Current value: %s", base_configs.get(name).get('value'))
-                    logger.info("Current status: %s", base_configs.get(name).get('define'))
                     if new_config.get('define'):
                         logger.info("New value: %s", new_config.get('value'))
                         base_configs[name] = new_config
