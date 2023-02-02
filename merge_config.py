@@ -114,7 +114,8 @@ def compare_config(config_full, config_diff):
     for config_name in config_diff:
         logger.debug("Checking config name: %s", config_name)
         if config_name not in config_full:
-            logger.warning("Argument `%s` is defined in config b but is not in config a", config_name)
+            logger.warning("Argument `%s` is undefined when it should be", config_name)
+            logger.warning("Expected value: %s", config_diff[config_name])
         elif config_full[config_name] != config_diff[config_name]:
             logger.warning("Argument value mismatch: %s", config_name)
             logger.warning("Configured value: %s", config_full[config_name])
