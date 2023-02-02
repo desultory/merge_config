@@ -8,6 +8,7 @@ import os
 import regex
 
 
+CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
 DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 DEFINE_START = "CONFIG_"
@@ -45,8 +46,8 @@ def line_to_config(file_line):
     line = file_line.rstrip()
     # Every kernel parameter should have "CONFIG" present
     # If it does not, raise a value error
-    if "CONFIG" not in line:
-        raise ValueError(f"`{line}` does not seem to be a kernel .config parameter")
+    if not regex.search(CONFIG_REGEXR, line):
+        raise SyntaxWarning(f"`{line}` does not seem to be a kernel .config parameter")
     # Define should be implied, gets unset by undefinitions
     define = True
 
@@ -92,7 +93,7 @@ def line_to_config(file_line):
         else:
             raise ValueError(f"Parameter: {parameter} failed the regex")
     else:
-        raise ValueError(f"Unable to parse line: {line}")
+        raise ValueError(f"Unable to parse possible config line: {line}")
 
 
 def process_config(base_file, merge_files, base_configs={}):
@@ -151,6 +152,8 @@ def process_config(base_file, merge_files, base_configs={}):
                         logger.info("Attempting to undefine a parameter which is not defined")
             except ValueError as e:
                 logger.error(e)
+            except SyntaxWarning as e:
+                logger.debug(e)
         process_config(base_file, merge_files, base_configs)
     else:
         logger.info("Merging has completed")
@@ -162,16 +165,12 @@ def write_config(config_dict, out_file):
     Takes a dictionary where the name is the parameter name, and the value is the parameter value
     writes as CONFIG_{name}={value}
     """
-    logger.debug("Got config dict: %s", config_dict)
     logger.info("Writing config file: %s", out_file)
     with open(out_file, 'w') as file:
         file.write("## Starting config\n")
         for name, items in config_dict.items():
             value = items.get('value')
-            logger.debug("Parameter name: %s", name)
-            logger.debug("Parameter value: %s", value)
             file.write(f"CONFIG_{name}={value}\n")
-            logger.debug("Wrote line: %s", f"CONFIG_{name}={value}")
         file.write("## Ending config\n")
     logger.info("Wrote config file: %s", out_file)
 
