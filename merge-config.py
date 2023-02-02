@@ -93,7 +93,7 @@ def line_to_config(file_line):
         else:
             raise ValueError(f"Parameter: {parameter} failed the regex")
     else:
-        raise ValueError(f"Unable to parse possible config line: {line}")
+        raise SyntaxWarning(f"Unable to parse possible config line: {line}")
 
 
 def process_config(base_file, merge_files, base_configs={}):
@@ -111,7 +111,7 @@ def process_config(base_file, merge_files, base_configs={}):
                 logger.debug("Using config name: %s", name)
                 # Ignore undefines in the base config
                 if not config.get('define'):
-                    logger.error("Line is undefine, ignoring parameter: %s", name)
+                    logger.debug("Line is an undefine in the base config, ignoring parameter: %s", name)
                 else:
                     logger.info("Saving parameter: %s=%s", name, config.get('value'))
                     base_configs[name] = config
@@ -149,7 +149,7 @@ def process_config(base_file, merge_files, base_configs={}):
                         logger.info("New value: %s", new_config.get('value'))
                         base_configs[name] = new_config
                     else:
-                        logger.info("Attempting to undefine a parameter which is not defined")
+                        logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
             except ValueError as e:
                 logger.error(e)
             except SyntaxWarning as e:
