@@ -104,21 +104,21 @@ def line_to_config(file_line):
         raise SyntaxWarning(f"Unable to parse possible config line: {line}")
 
 
-def compare_config(config_a, config_b):
+def compare_config(config_full, config_diff):
     """
     Compare the key differences between config files
-    Config a should be the most complete one, such as the one make generates
-    config b should be one with intended configuration
+    Config_full should be the most complete one, such as the one make generates
+    config_diff should be one with intended configuration
     Both objects should be the dict type used in this script
     """
-    for config_name in config_b:
+    for config_name in config_diff:
         logger.debug("Checking config name: %s", config_name)
-        if config_name not in config_a:
+        if config_name not in config_full:
             logger.warning("Argument `%s` is defined in config b but is not in config a", config_name)
-        elif config_a[config_name] != config_b[config_name]:
+        elif config_full[config_name] != config_diff[config_name]:
             logger.warning("Argument value mismatch: %s", config_name)
-            logger.warning("Config a value: %s", config_a[config_name])
-            logger.warning("Config b value: %s", config_b[config_name])
+            logger.warning("Configured value: %s", config_full[config_name])
+            logger.warning("Expected value: %s", config_diff[config_name])
 
 
 def load_config(config_file_name='.config'):
