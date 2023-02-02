@@ -15,6 +15,7 @@ Merges .config files.
 | merge_config	|				    | The files to be merged over the base config.  Uses the base_config argument if it is the only conf specified  |
 | -v		|				    | Increases verbosity, can also be enabled by exporting `DEBUG=1`						    |
 | -o		| .config			    | The output file, defaults to `.config`									    |
+| -m		| 1				    | Processes the merged config through make									    |
 
 ## Example usage
 
