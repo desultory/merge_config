@@ -201,7 +201,6 @@ if __name__ == '__main__':
     parser.add_argument('-m',
                         action='store_true',
                         default=True,
-                        const=True,
                         help="Enables using make to compile the final config")
     # Add a debugging arg
     parser.add_argument('-v',
