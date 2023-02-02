@@ -14,7 +14,7 @@ import os
 import regex
 
 
-CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_^([a-zA-Z0-9_])+=-?([a-zA-Z0-9"/])+$])+')
+CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
 DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 DEFINE_START = "CONFIG_"
