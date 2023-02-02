@@ -240,10 +240,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='merge-config',
                                      description='Merges kernel.config files')
     # Add the make arg
-    parser.add_argument('-m',
+    parser.add_argument('-n',
                         action='store_true',
-                        default=True,
-                        help="Enables using make to compile the final config")
+                        help="Disables using make to compile the final config")
     # Add a debugging arg
     parser.add_argument('-v',
                         action='store_true',
@@ -294,7 +293,7 @@ if __name__ == '__main__':
 
     write_config(processed_config, out_file_name)
 
-    if args.m:
+    if not args.n:
         logger.info("Running make on: %s", out_file_name)
         # first load the config before running through make
         script_processed_config = load_config(out_file_name)
