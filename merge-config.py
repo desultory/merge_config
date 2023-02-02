@@ -300,5 +300,9 @@ if __name__ == '__main__':
         make_config(out_file_name)
         # Load the config after it has been processed through make
         processed_config = load_config(out_file_name)
+        print(script_processed_config)
+        print(processed_config)
         compare_config(processed_config, script_processed_config)
+
+
 
