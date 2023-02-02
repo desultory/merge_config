@@ -104,6 +104,15 @@ def line_to_config(file_line):
         raise SyntaxWarning(f"Unable to parse possible config line: {line}")
 
 
+def make_config(base_file='.config'):
+
+    make_args = ['make', 'KCONFIG_ALLCONFIG=.config', 'allnoconfig']
+
+    logger.debug("Args: %s", make_args)
+    output = os.system(make_args)
+    logger.info(output)
+
+
 def process_config(base_file, merge_files, base_configs={}):
     """
     Processes the base file into base config
@@ -188,30 +197,31 @@ if __name__ == '__main__':
     # Initialise the arg parser
     parser = argparse.ArgumentParser(prog='merge-config',
                                      description='Merges kernel.config files')
-    logger.debug("Initialized the argparser")
+    # Add the make arg
+    parser.add_argument('-m',
+                        action='store_true',
+                        default=True,
+                        const=True,
+                        help="Enables using make to compile the final config")
     # Add a debugging arg
     parser.add_argument('-v',
                         action='store_true',
                         help="Enables debugging, set your DEBUG environment variable to 1 for earlier debugging")
-    logger.debug("Added the debug argument")
     # Add the output file arg
     parser.add_argument('-o',
                         action='store',
                         help=f"The output file location, the default is {DEFAULT_OUT_FILE}")
-    logger.debug("Added the output file location argument")
     # First take the base argument
     # If this is the only argument, use it as the merge file,
     # using the DEFAULT_CONFIG as the base file
     parser.add_argument('base_file',
                         type=argparse.FileType('r'),
                         help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
-    logger.debug("Added the base_file argparser argument")
     # Then take the rest of the arguments as files to open
     parser.add_argument('merge_files',
                         type=argparse.FileType('r'),
                         nargs='*',
                         help="Files to be merged")
-    logger.debug("Added the merge_files argparser argument")
     args = parser.parse_args()
     log_level = logging.DEBUG if debug or args.v else logging.INFO
     logger.setLevel(log_level)
@@ -241,3 +251,6 @@ if __name__ == '__main__':
     logger.debug("Set the output file to: %s", out_file)
     processed_config = process_config(base_file, merge_files)
     write_config(processed_config, out_file)
+    if args.m:
+        logger.info("Running make on: %s", out_file)
+        make_config(out_file)
