@@ -105,8 +105,7 @@ def line_to_config(file_line):
 
 
 def make_config(base_file='.config'):
-
-    make_args = ['make', 'KCONFIG_ALLCONFIG=.config', 'allnoconfig']
+    make_args = f"make KCONFIG_ALLCONFIG={base_file} allnoconfig"
 
     logger.debug("Args: %s", make_args)
     output = os.system(make_args)
