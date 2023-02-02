@@ -111,13 +111,14 @@ def compare_config(config_a, config_b):
     config b should be one with intended configuration
     Both objects should be the dict type used in this script
     """
-    for name, config in config_b.values():
-        if name not in config_a:
-            logger.warning("Argument `%s` is defined in config b but is not in config a", name)
-        elif config_a[name] != config:
-            logger.warning("Argument value mismatch: %s", name)
-            logger.warning("Config a value: %s", config_a[name])
-            logger.warning("Config b value: %s", config)
+    for config_name in config_b:
+        logger.debug("Checking config name: %s", config_name)
+        if config_name not in config_a:
+            logger.warning("Argument `%s` is defined in config b but is not in config a", config_name)
+        elif config_a[config_name] != config_b[config_name]:
+            logger.warning("Argument value mismatch: %s", config_name)
+            logger.warning("Config a value: %s", config_a[config_name])
+            logger.warning("Config b value: %s", config_b[config_name])
 
 
 def load_config(config_file_name='.config'):
@@ -300,9 +301,6 @@ if __name__ == '__main__':
         make_config(out_file_name)
         # Load the config after it has been processed through make
         processed_config = load_config(out_file_name)
-        print(script_processed_config)
-        print(processed_config)
         compare_config(processed_config, script_processed_config)
-
 
 
