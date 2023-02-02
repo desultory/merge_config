@@ -186,12 +186,6 @@ if __name__ == '__main__':
                         action='store_true',
                         help="Enables debugging, set your DEBUG environment variable to 1 for earlier debugging")
     logger.debug("Added the debug argument")
-    # Add the default config arg
-    # If enabled, the default config will be used
-    parser.add_argument('-d',
-                        action='store_true',
-                        help="Use the default configuration")
-    logger.debug("Added the default configuration argument")
     # Add the output file arg
     parser.add_argument('-o',
                         action='store',
@@ -220,7 +214,7 @@ if __name__ == '__main__':
     # assume the base file is actually a merge file
     # If the default flag is enabled,
     # move the passed base file to the merge files
-    if not args.merge_files or args.d:
+    if not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG)
         base_file = open(DEFAULT_CONFIG, 'r', encoding='utf-8')
         merge_files.append(args.base_file)
