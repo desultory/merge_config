@@ -182,7 +182,7 @@ def merge_config(merge_file_name, base_config):
                 logger.debug(e)
 
     if merged_config == base_config:
-        logger.warning("No changed detected after merging: %s", merge_file_name)
+        logger.warning("No changes detected after merging: %s", merge_file_name)
 
     return merged_config
 
@@ -242,9 +242,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='merge-config',
                                      description='Merges kernel.config files')
     # Add the make arg
-    parser.add_argument('-n',
+    parser.add_argument('-m',
                         action='store_true',
-                        help="Disables using make to compile the final config")
+                        help="Only merge fragments, disables using make to compile the final config")
     # Add a debugging arg
     parser.add_argument('-v',
                         action='store_true',
@@ -254,8 +254,7 @@ if __name__ == '__main__':
                         action='store',
                         help=f"The output file location, the default is {DEFAULT_OUT_FILE}")
     # First take the base argument
-    # If this is the only argument, use it as the merge file,
-    # using the DEFAULT_CONFIG as the base file
+    # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG as the base file
     parser.add_argument('base_file',
                         type=str,
                         help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
@@ -270,10 +269,8 @@ if __name__ == '__main__':
     stdout_handler.setLevel(log_level)
     logger.debug("Parsed the arguments")
     merge_files = []
-    # If no merge files are passed,
-    # assume the base file is actually a merge file
-    # If the default flag is enabled,
-    # move the passed base file to the merge files
+    # If no merge files are passed, assume the base file is actually a merge file
+    # If the default flag is enabled, move the passed base file to the merge files
     if not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG)
         base_file_name = DEFAULT_CONFIG
