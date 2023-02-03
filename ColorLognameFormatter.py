@@ -43,6 +43,6 @@ class ColorLognameFormatter(logging.Formatter):
     def format(self, record):
         # When calling format, replace the levelname with a colored version
         # Note: the string size is greatly increased because of the color codes
-        record.__dict__['levelname'] = self._color_levelname[record.__dict__['levelname']]
+        record.levelname = self._color_levelname[record.levelname]
         return super().format(record)
 
