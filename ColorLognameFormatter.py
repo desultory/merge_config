@@ -13,7 +13,7 @@ class ColorLognameFormatter(logging.Formatter):
     ColorLognameFormatter Class
     Add the handler to the stdout handler using:
     stdout_handler = logging.StreamHandler()
-    stdout_handler.setFormatter(ColorFormatter())
+    stdout_handler.setFormatter(ColorLognameFormatter())
     """
 
     _level_str_len = 8
