@@ -14,14 +14,14 @@ import os
 import regex
 
 
-CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
+CONFIG_REGEX = regex.compile(r'(CONFIG)([A-Z0-9_])+')
 DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 DEFINE_START = "CONFIG_"
-DEFINE_REGEXR = regex.compile(r'^([a-zA-Z0-9_])+=([a-zA-Z0-9"/_.,-])+$')
+DEFINE_REGEX = r'^([A-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=])+")$'
 UNDEFINE_START = "# CONFIG_"
 UNDEFINE_END = " is not set"
-UNDEFINE_REGEXR = regex.compile(r"^([a-zA-Z0-9_]+)$")
+UNDEFINE_REGEX = regex.compile(r"^([a-zA-Z0-9_]+)$")
 
 debug = int(os.environ.get('DEBUG', 0))
 log_level = logging.DEBUG if debug else logging.INFO
@@ -51,7 +51,7 @@ def line_to_config(file_line):
     line = file_line.rstrip()
     # Every kernel parameter should have "CONFIG_ABC_XYZ" present
     # If it does not, raise a SyntaxWarning
-    if not regex.search(CONFIG_REGEXR, line):
+    if not regex.search(CONFIG_REGEX, line):
         raise SyntaxWarning(f"`{line}` does not seem to be a kernel .config parameter")
     # Define should be implied, gets unset by undefinitions
     define = True
@@ -61,9 +61,9 @@ def line_to_config(file_line):
         logger.debug("Detected an undefine")
         # Removing all portions of the line other than the parameter name
         parameter = line.replace(UNDEFINE_START, '').replace(UNDEFINE_END, '')
-        if regex.match(UNDEFINE_REGEXR, parameter):
+        if regex.match(UNDEFINE_REGEX, parameter):
             # Extract the regex match if it exists
-            parameter = regex.search(UNDEFINE_REGEXR, parameter).group(1)
+            parameter = regex.search(UNDEFINE_REGEX, parameter).group(1)
             logger.debug("Detected paramter: %s", parameter)
             # Return the parameter name, and instructions to not define
             return parameter, {"define": False}
@@ -82,7 +82,7 @@ def line_to_config(file_line):
             # Clean the string
             parameter = parameter.strip()
         # Check that the string matches the definition regex
-        if regex.match(DEFINE_REGEXR, parameter):
+        if regex.match(DEFINE_REGEX, parameter) or regex.match(DEFINE_REGEX, parameter):
             # Find the location of the = character, to split the parameter and value
             eq_loc = parameter.find('=')
             # The value is everything after the equal sign
