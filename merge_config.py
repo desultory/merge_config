@@ -232,7 +232,7 @@ class ConfigMerger:
         Uses allnoconfig if allnoconfig is True, otherwise uses alldefconfig
         Substitutes the generated config into KCONFIG_ALLCONFIG
         """
-        make_args = f"make KCONFIG_ALLCONFIG={self.base_file} "
+        make_args = f"make KCONFIG_ALLCONFIG={self.out_file_name} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
         logger.info("Running the following make command: %s", make_args)
         output = os.system(make_args)
