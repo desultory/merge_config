@@ -13,33 +13,36 @@ class CustomFormatter(logging.Formatter):
     CustomFormatter Class
     Add the handler to the stdout handler using:
     stdout_handler = logging.StreamHandler()
-    stdout_handler.setFormatter(ColorFormatter()
+    stdout_handler.setFormatter(ColorFormatter())
     """
 
-    _fmt = '%(message)s'
+    _level_str_len = 8
+    # Define the color codes
     _reset_str = '\x1b[0m'
     _grey_str = '\x1b[38;21m'
     _blue_str = '\x1b[38;5;39m'
     _yllw_str = '\x1b[38;5;226m'
     _sred_str = '\x1b[38;5;196m'
     _bred_str = '\x1b[31;1m'
-    debug_str = _grey_str + 'DEBUG' + _reset_str + '   |'
-    info_str = _blue_str + 'INFO' + _reset_str + '    |'
-    warn_str = _yllw_str + 'WARNING' + _reset_str + ' |'
-    error_str = _sred_str + 'ERROR' + _reset_str + '   |'
-    crit_str = _bred_str + 'CRITICAL' + _reset_str + '|'
+    # Make the basic strings
+    _debug_color_str = f"{_grey_str}DEBUG{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_grey_str), ' ')
+    _info_color_str = f"{_blue_str}INFO{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_blue_str), ' ')
+    _warn_color_str = f"{_yllw_str}WARNING{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_yllw_str), ' ')
+    _error_color_str = f"{_sred_str}ERROR{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_sred_str), ' ')
+    _crit_color_str = f"{_bred_str}CRITICAL{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_bred_str), ' ')
+    # Format into a dict
+    _color_levelname = {'DEBUG': _debug_color_str,
+                        'INFO': _info_color_str,
+                        'WARNING': _warn_color_str,
+                        'ERROR': _error_color_str,
+                        'CRITICAL': _error_color_str}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.FORMATS = {
-            logging.DEBUG: self.debug_str + self._fmt,
-            logging.INFO: self.info_str + self._fmt,
-            logging.WARNING: self.warn_str + self._fmt,
-            logging.ERROR: self.error_str + self._fmt,
-            logging.CRITICAL: self.crit_str + self._fmt
-        }
+    def __init__(self, fmt='%(levelname)s | %(message)s', *args, **kwargs):
+        super().__init__(fmt, *args, **kwargs)
 
     def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        # When calling format, replace the levelname with a colored version
+        # Note: the string size is greatly increased because of the color codes
+        record.__dict__['levelname'] = self._color_levelname[record.__dict__['levelname']]
+        return super().format(record)
+

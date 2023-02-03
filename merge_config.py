@@ -25,7 +25,6 @@ UNDEFINE_REGEXR = regex.compile(r"^([a-zA-Z0-9_]+)$")
 
 debug = int(os.environ.get('DEBUG', 0))
 log_level = logging.DEBUG if debug else logging.INFO
-log_fmt = '%(asctime)s | %(levelname)8s '
 
 logger = logging.getLogger(__name__)
 logger.setLevel(log_level)
@@ -33,7 +32,7 @@ logger.setLevel(log_level)
 stdout_handler = logging.StreamHandler()
 
 stdout_handler.setLevel(log_level)
-stdout_handler.setFormatter(CustomFormatter(log_fmt))
+stdout_handler.setFormatter(CustomFormatter())
 
 logger.addHandler(stdout_handler)
 
