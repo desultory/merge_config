@@ -156,6 +156,7 @@ def merge_config(merge_file_name, base_config):
 
     # Copy the dict
     merged_config = base_config.copy()
+    logger.info("Opening config file for merge: %s", merge_file_name)
     with open(merge_file_name, 'r') as merge_file:
         for line in merge_file.readlines():
             try:
@@ -216,12 +217,10 @@ def process_config(base_file_name, merge_files, processed_config={}):
     # Item entries are popped from the list when processing has started
     # This should not run endlessly but may fail to process each merge section
     # Sections are applied over the base config as they are processed
-    if merge_files:
-        merge_file = merge_files.pop(0)
+    for merge_file in merge_files:
         processed_config = merge_config(merge_file, processed_config)
-        process_config(base_file_name, merge_files, processed_config)
-    else:
-        logger.info("Merging has completed")
+    logger.info("Merging has completed")
+    
     return processed_config
 
 
@@ -259,7 +258,8 @@ if __name__ == '__main__':
                         help="Enables debugging, set your DEBUG environment variable to 1 for earlier debugging, set to -vv for even more debug info")
     # Add the output file arg
     parser.add_argument('-o',
-                        action='store',
+                        type=str,
+                        default=DEFAULT_OUT_FILE,
                         help=f"The output file location, the default is {DEFAULT_OUT_FILE}")
     # Add the default config arg
     parser.add_argument('-d',
