@@ -154,7 +154,8 @@ def merge_config(merge_file_name, base_config):
     Merges a file into the supplied config
     """
 
-    merged_config = base_config
+    # Copy the dict
+    merged_config = base_config.copy()
     with open(merge_file_name, 'r') as merge_file:
         for line in merge_file.readlines():
             try:
@@ -260,6 +261,10 @@ if __name__ == '__main__':
     parser.add_argument('-o',
                         action='store',
                         help=f"The output file location, the default is {DEFAULT_OUT_FILE}")
+    # Add the default config arg
+    parser.add_argument('-d',
+                        action='store_true',
+                        help=f"Use {DEFAULT_CONFIG} as the base file")
     # First take the base argument
     # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG as the base file
     parser.add_argument('base_file_name',
@@ -285,10 +290,10 @@ if __name__ == '__main__':
     merge_files = []
     # If no merge files are passed, assume the base file is actually a merge file
     # If the default flag is enabled, move the passed base file to the merge files
-    if not args.merge_files:
+    if args.d or not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG)
         base_file_name = DEFAULT_CONFIG
-        merge_files.append(args.base_file)
+        merge_files.append(args.base_file_name)
         # if -d is passed, and there are still merge files, add them
         if args.merge_files:
             merge_files += args.merge_files
