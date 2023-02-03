@@ -116,9 +116,10 @@ def compare_config(config_full, config_diff):
                            config_name,
                            config_diff[config_name].get('value'))
         elif config_full[config_name] != config_diff[config_name]:
-            logger.warning("Argument value mismatch: %s", config_name)
-            logger.warning("Configured value: %s", config_full[config_name].get('value'))
-            logger.warning("Expected value: %s", config_diff[config_name].get('value'))
+            logger.warning("Argument value mismatch for: %s  | Found: %s | Expected: %s",
+                           config_name,
+                           config_full[config_name].get('value'),
+                           config_diff[config_name].get('value'))
 
 
 def load_config(config_file_name='.config'):
