@@ -1,5 +1,5 @@
 """
-CustomFormatter
+ColorLogname
 Adapted from:
 https://stackoverflow.com/a/56944256/3638629
 https://alexandra-zaharia.github.io/posts/make-your-own-custom-color-formatter-with-python-logging/
@@ -8,9 +8,9 @@ https://alexandra-zaharia.github.io/posts/make-your-own-custom-color-formatter-w
 import logging
 
 
-class CustomFormatter(logging.Formatter):
+class ColorLognameFormatter(logging.Formatter):
     """
-    CustomFormatter Class
+    ColorLognameFormatter Class
     Add the handler to the stdout handler using:
     stdout_handler = logging.StreamHandler()
     stdout_handler.setFormatter(ColorFormatter())

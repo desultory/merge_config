@@ -7,7 +7,7 @@ Can process the file with/without make
 
 """
 
-from CustomFormatter import CustomFormatter
+from ColorLognameFormatter import ColorLognameFormatter
 import argparse
 import logging
 import os
@@ -32,7 +32,7 @@ logger.setLevel(log_level)
 stdout_handler = logging.StreamHandler()
 
 stdout_handler.setLevel(log_level)
-stdout_handler.setFormatter(CustomFormatter())
+stdout_handler.setFormatter(ColorLognameFormatter())
 
 logger.addHandler(stdout_handler)
 
