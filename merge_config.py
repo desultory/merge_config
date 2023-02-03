@@ -227,7 +227,7 @@ class ConfigMerger:
 
     def make_config(self):
         """
-        Runs a kernel.config file through make
+        Runs the output .config file through make
         outputs a working .config file for the current kernel version
         Uses allnoconfig if allnoconfig is True, otherwise uses alldefconfig
         Substitutes the generated config into KCONFIG_ALLCONFIG
