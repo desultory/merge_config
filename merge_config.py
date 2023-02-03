@@ -167,9 +167,9 @@ class ConfigMerger:
                     self.logger.debug("Detected config name: %s", name)
                     # Ignore undefines in the base config
                     if not config.get('define'):
-                        self.logger.debug("Line is an undefine in the base config, ignoring parameter: %s", name)
+                        self.logger.info("Line is an undefine in the base config, ignoring parameter: %s", name)
                     else:
-                        self.logger.info("Saving parameter: %s=%s", name, config.get('value'))
+                        self.logger.debug("Saving parameter: %s=%s", name, config.get('value'))
                         kernel_config[name] = config
                 # Allow the value errors but throw errors
                 except ValueError as e:
