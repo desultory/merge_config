@@ -253,8 +253,9 @@ if __name__ == '__main__':
                         help="Use allnoconfig instead of alldefconfig")
     # Add a debugging arg
     parser.add_argument('-v',
-                        action='store_true',
-                        help="Enables debugging, set your DEBUG environment variable to 1 for earlier debugging")
+                        nargs='?',
+                        const='i',
+                        help="Enables debugging, set your DEBUG environment variable to 1 for earlier debugging, set to -vv for even more debug info")
     # Add the output file arg
     parser.add_argument('-o',
                         action='store',
@@ -270,7 +271,12 @@ if __name__ == '__main__':
                         nargs='*',
                         help="Files to be merged")
     args = parser.parse_args()
-    log_level = logging.DEBUG if debug or args.v else logging.INFO
+    if debug or args.v == 'v':
+        log_level = logging.DEBUG
+    elif args.v == 'i':
+        log_level = logging.INFO
+    else:
+        log_level = logging.WARNING
     logger.setLevel(log_level)
     stdout_handler.setLevel(log_level)
     logger.debug("Parsed the arguments")
