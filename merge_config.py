@@ -262,7 +262,7 @@ if __name__ == '__main__':
                         help=f"The output file location, the default is {DEFAULT_OUT_FILE}")
     # First take the base argument
     # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG as the base file
-    parser.add_argument('base_file',
+    parser.add_argument('base_file_name',
                         type=str,
                         help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
     # Then take the rest of the arguments as files to open
@@ -294,7 +294,7 @@ if __name__ == '__main__':
             merge_files += args.merge_files
     else:
         logger.info("Using %s as the base config file", args.base_file_name)
-        base_file_name = args.base_file
+        base_file_name = args.base_file_name
         merge_files = args.merge_files
 
     for file in merge_files:
