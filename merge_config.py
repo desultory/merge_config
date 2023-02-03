@@ -74,6 +74,8 @@ class ConfigMerger:
         if not no_make:
             self.old_config = self.base_config.copy()
             self.make_config()
+            self.base_file = out_file_name
+            self.logger.info("Changing the base file to: %s", self.base_file)
             self.load_config()
             self.compare_config()
 
@@ -232,7 +234,7 @@ class ConfigMerger:
         """
         make_args = f"make KCONFIG_ALLCONFIG={self.base_file} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
-        logger.info("Running the following make command: %s", make_args)
+        logger.info("Running the following make commandIP_NF_TARGET_MASQUERADE: %s", make_args)
         output = os.system(make_args)
         if output != 0:
             raise RuntimeError(f"Unable to run make command, args: {make_args}")
