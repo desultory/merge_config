@@ -137,7 +137,7 @@ def load_config(config_file_name='.config'):
                     logger.debug("Line is an undefine in the base config, ignoring parameter: %s", name)
                 else:
                     logger.info("Saving parameter: %s=%s", name, config.get('value'))
-                kernel_config[name] = config
+                    kernel_config[name] = config
             # Allow the value errors but throw errors
             except ValueError as e:
                 logger.error(e)
