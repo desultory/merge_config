@@ -271,6 +271,7 @@ if __name__ == '__main__':
                         nargs='*',
                         help="Files to be merged")
     args = parser.parse_args()
+
     if debug or args.v == 2:
         log_level = logging.DEBUG
     elif args.v == 1:
@@ -280,6 +281,7 @@ if __name__ == '__main__':
     logger.setLevel(log_level)
     stdout_handler.setLevel(log_level)
     logger.debug("Parsed the arguments")
+
     merge_files = []
     # If no merge files are passed, assume the base file is actually a merge file
     # If the default flag is enabled, move the passed base file to the merge files
