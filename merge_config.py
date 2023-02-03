@@ -50,8 +50,7 @@ def line_to_config(file_line):
     """
     # Do a basic string clean
     line = file_line.rstrip()
-    # Every kernel parameter should have "CONFIG_ABC_XYZ" present
-    # If it does not, raise a SyntaxWarning
+    # Check that the line contains expected config syntax
     if not regex.search(CONFIG_REGEX, line):
         raise SyntaxWarning(f"`{line}` does not seem to be a kernel .config parameter")
     # Define should be implied, gets unset by undefinitions
@@ -60,44 +59,44 @@ def line_to_config(file_line):
     # Ensure the entire line starts and ends with these values
     if line.startswith(UNDEFINE_START) and line.endswith(UNDEFINE_END):
         logger.debug("Detected an undefine")
-        # Removing all portions of the line other than the parameter name
-        parameter = line.replace(UNDEFINE_START, '').replace(UNDEFINE_END, '')
-        if regex.match(UNDEFINE_REGEX, parameter):
+        # Removing all portions of the line other than the config variable name
+        config_var = line.replace(UNDEFINE_START, '').replace(UNDEFINE_END, '')
+        if regex.match(UNDEFINE_REGEX, config_var):
             # Extract the regex match if it exists
-            parameter = regex.search(UNDEFINE_REGEX, parameter).group(1)
-            logger.debug("Detected paramter: %s", parameter)
-            # Return the parameter name, and instructions to not define
-            return parameter, {"define": False}
+            config_var = regex.search(UNDEFINE_REGEX, config_var).group(1)
+            logger.debug("Detected config variable: %s", config_var)
+            # Return the config variable name, and instructions to not define
+            return config_var, {"define": False}
         else:
-            raise ValueError(f"Parameter: {parameter} failed the regex")
+            raise ValueError(f"Configuration variable: {config_var} failed the regex")
     # When a standard definition is detected
     elif line.startswith(DEFINE_START):
         logger.debug("Detected a defintion")
         # Remove the start of the definition for processing
-        parameter = line.replace(DEFINE_START, '')
+        config_var = line.replace(DEFINE_START, '')
         # Consider line comments
-        if "#" in parameter:
+        if "#" in config_var:
             logger.debug("Comment detected, removing")
             # Cut the string to where the comment is found
-            parameter = parameter[:parameter.find("#")]
+            config_var = config_var[:config_var.find("#")]
             # Clean the string
-            parameter = parameter.strip()
+            config_var = config_var.strip()
         # Check that the string matches the definition regex
-        if regex.match(DEFINE_REGEX, parameter) or regex.match(DEFINE_REGEX, parameter):
-            # Find the location of the = character, to split the parameter and value
-            eq_loc = parameter.find('=')
+        if regex.match(DEFINE_REGEX, config_var) or regex.match(DEFINE_REGEX, config_var):
+            # Find the location of the = character, to split the config_var and value
+            eq_loc = config_var.find('=')
             # The value is everything after the equal sign
-            value = parameter[eq_loc + 1:]
+            value = config_var[eq_loc + 1:]
             logger.debug("Detected value: %s", value)
-            # The parameter is everything before, this also strips the = sign
-            parameter = parameter[:eq_loc]
-            if parameter and value:
-                logger.debug("Detected paramter: %s", parameter)
-                return parameter, {"define": define,
-                                   "value": value}
-            raise ValueError(f"Parameter `{parameter}` is defined with no value")
+            # The config_var is everything before, this also strips the = sign
+            config_var = config_var[:eq_loc]
+            if config_var and value:
+                logger.debug("Detected config variable: %s", config_var)
+                return config_var, {"define": define,
+                                    "value": value}
+            raise ValueError(f"Configuration variable is defined with no value: {config_var}")
         else:
-            raise ValueError(f"Parameter: {parameter} failed the regex")
+            raise ValueError(f"Configuration variable faliled the regex: {config_var}")
     else:
         raise SyntaxWarning(f"Unable to parse possible config line: {line}")
 
@@ -161,16 +160,16 @@ def merge_config(merge_file_name, base_config):
             try:
                 name, new_config = line_to_config(line)
                 if name in base_config:
-                    logger.info("Parameter: %s already detected in base config", name)
+                    logger.info("Config var aleady detected in the base config: %s", name)
                     logger.info("Current value: %s", base_config.get(name).get('value'))
                     if new_config.get('define'):
                         logger.info("New value: %s", new_config.get('value'))
                         merged_config[name] = new_config
                     else:
-                        logger.info("Deleting config entry for parameter: %s", name)
+                        logger.info("Deleting config entry for config var: %s", name)
                         del merged_config[name]
                 else:
-                    logger.info("Parameter: %s does not exist in the base config", name)
+                    logger.info("Config var does not exist in the base config: %s", name)
                     if new_config.get('define'):
                         logger.info("New value: %s", new_config.get('value'))
                         merged_config[name] = new_config
@@ -227,7 +226,7 @@ def process_config(base_file_name, merge_files, processed_config={}):
 
 def write_config(config_dict, out_file_name):
     """
-    Takes a dictionary where the name is the parameter name, and the value is the parameter value
+    Takes a dictionary where the name is the config variable name, and the value is the... value
     writes as CONFIG_{name}={value}
     """
     logger.info("Writing config file: %s", out_file_name)
