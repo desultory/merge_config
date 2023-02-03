@@ -169,7 +169,7 @@ class ConfigMerger:
                     self.logger.debug("Detected config name: %s", name)
                     # Ignore undefines in the base config
                     if not config.get('define'):
-                        self.logger.info("Line is an undefine in the base config, ignoring parameter: %s", name)
+                        self.logger.debug("Line is an undefine in the base config, ignoring parameter: %s", name)
                     else:
                         self.logger.debug("Saving parameter: %s=%s", name, config.get('value'))
                         kernel_config[name] = config
@@ -234,7 +234,7 @@ class ConfigMerger:
         """
         make_args = f"make KCONFIG_ALLCONFIG={self.base_file} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
-        logger.info("Running the following make commandIP_NF_TARGET_MASQUERADE: %s", make_args)
+        logger.info("Running the following make command: %s", make_args)
         output = os.system(make_args)
         if output != 0:
             raise RuntimeError(f"Unable to run make command, args: {make_args}")
