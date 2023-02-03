@@ -202,6 +202,7 @@ class ConfigMerger:
                         self.logger.info("Current value: %s", self.base_config.get(name).get('value'))
                         if self.strict_mode:
                             self.logger.error("Attempting to redefine in strict mode: %s=%s", name, new_config.get('value'))
+                            self._strict_fail = True
                         elif new_config.get('define'):
                             self.logger.info("New value: %s", new_config.get('value'))
                             merged_config[name] = new_config
@@ -257,6 +258,9 @@ class ConfigMerger:
         for merge_file in self.merge_files:
             self.merge_config(merge_file)
         logger.info("Merging has completed")
+    
+        if self._strict_fail:
+            raise RuntimeError("Strict mode is enabled and has detected a failure")
 
     def write_config(self):
         """

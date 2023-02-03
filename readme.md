@@ -16,6 +16,7 @@ Merges .config files.
 | -v		    |				                    | Increases verbosity, can also be enabled by exporting `DEBUG=1`						                        |
 | -m		    | 				                    | Only merge fragments, don't pass through make								                                    |
 | -n            |                                   | Use allnoconfig instead of alldefconfig                                                                       |
+| -s            |                                   | Strict mode: Fails if there is a parameter redefinition                                                       |
 | -o		    | .config			                | The output file, defaults to `.config`									                                    |
 
 ## Example usage
