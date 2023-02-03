@@ -264,7 +264,6 @@ class ConfigMerger:
 
 
 if __name__ == '__main__':
-
     debug = int(os.environ.get('DEBUG', 0))
     log_level = logging.DEBUG if debug else logging.INFO
 
