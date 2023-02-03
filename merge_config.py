@@ -18,7 +18,7 @@ CONFIG_REGEXR = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
 DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 DEFINE_START = "CONFIG_"
-DEFINE_REGEXR = regex.compile(r'^([a-zA-Z0-9_])+=-?([a-zA-Z0-9"/_.,])+$')
+DEFINE_REGEXR = regex.compile(r'^([a-zA-Z0-9_])+=([a-zA-Z0-9"/_.,-])+$')
 UNDEFINE_START = "# CONFIG_"
 UNDEFINE_END = " is not set"
 UNDEFINE_REGEXR = regex.compile(r"^([a-zA-Z0-9_]+)$")
@@ -168,7 +168,7 @@ def merge_config(merge_file_name, base_config):
                         logger.info("Deleting config entry for parameter: %s", name)
                         del merged_config[name]
                 else:
-                    logger.info("Parameter: %s is new", name)
+                    logger.info("Parameter: %s does not exist in the base config", name)
                     if new_config.get('define'):
                         logger.info("New value: %s", new_config.get('value'))
                         merged_config[name] = new_config
