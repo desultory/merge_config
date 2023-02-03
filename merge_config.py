@@ -232,7 +232,7 @@ class ConfigMerger:
         """
         make_args = f"make KCONFIG_ALLCONFIG={self.base_file} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
-        logger.debug("Args: %s", make_args)
+        logger.info("Running the following make command: %s", make_args)
         output = os.system(make_args)
         if output != 0:
             raise RuntimeError(f"Unable to run make command, args: {make_args}")
