@@ -46,11 +46,11 @@ class ConfigMerger:
         self.out_file_name = out_file_name
         self.logger.debug("Set the output file name to: %s", self.out_file_name)
         self.allnoconfig = allnoconfig
-        self.logger.debug("Set allnoconfig to: %b", self.allnoconfig)
+        self.logger.debug("Set allnoconfig to: %s", self.allnoconfig)
         self.strict_mode = strict_mode
-        self.logger.debug("Set strict mode to: %b", self.strict_mode)
+        self.logger.debug("Set strict mode to: %s", self.strict_mode)
         self.no_make = no_make
-        self.logger.debug("Set no make to : %b", self.no_make)
+        self.logger.debug("Set no make to: %s", self.no_make)
 
         self.load_config()
         self.process_config()
@@ -183,8 +183,7 @@ class ConfigMerger:
                 try:
                     name, new_config = self.line_to_config(line)
                     if name in self.base_config:
-                        self.logger.info("Config var aleady detected in the base config: %s", name)
-                        self.logger.info("Current value: %s", self.base_config.get(name).get('value'))
+                        self.logger.info("Config var aleady detected in the base config: %s=%s", name, self.base_config.get(name).get('value'))
                         if self.strict_mode:
                             self.logger.error("Attempting to redefine in strict mode: %s=%s", name, new_config.get('value'))
                             self._strict_fail = True
