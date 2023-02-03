@@ -195,9 +195,8 @@ class ConfigMerger:
                             self.logger.info("Deleting config entry for config var: %s", name)
                             del merged_config[name]
                     else:
-                        self.logger.info("Config var does not exist in the base config: %s", name)
                         if new_config.get('define'):
-                            self.logger.info("New value: %s", new_config.get('value'))
+                            self.logger.info("New config parameter set: %s=%s", name, new_config.get('value'))
                             merged_config[name] = new_config
                         else:
                             self.logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
