@@ -1,5 +1,5 @@
 """
-ColorLogname
+ColorLognameFormatter
 Adapted from:
 https://stackoverflow.com/a/56944256/3638629
 https://alexandra-zaharia.github.io/posts/make-your-own-custom-color-formatter-with-python-logging/
