@@ -192,7 +192,7 @@ def make_config(alldefconfig=True, base_file='.config'):
     Uses allnoconfig if alldefconfig is False, otherwise uses alldefconfig
     Substitutes the generated config into KCONFIG_ALLCONFIG
     """
-    make_args = f"make KCONFIG_ALLCONFIG={base_file}"
+    make_args = f"make KCONFIG_ALLCONFIG={base_file} "
     make_args += "alldefconfig" if alldefconfig else "allnoconfig"
     logger.debug("Args: %s", make_args)
     output = os.system(make_args)
