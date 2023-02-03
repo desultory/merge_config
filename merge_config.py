@@ -42,7 +42,8 @@ logging.debug("Initialized logging")
 
 
 class ConfigMerger:
-    def __init__(self, base_file_name, merge_files, out_file_name=DEFAULT_OUT_FILE, allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
+    _strict_fail = False
+    def __init__(self, base_file, merge_files, out_file_name=DEFAULT_OUT_FILE, allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
         self.log_level = log_level
         self.logger = logging.getLogger("ConfigMerger")
         self.logger.setLevel(self.log_level)
@@ -53,8 +54,8 @@ class ConfigMerger:
         self.logger.propagate = False
         self.logger.debug("Initialized logging")
 
-        self.base_file_name = base_file_name
-        self.logger.debug("Set the base file name to: %s", self.base_file_name)
+        self.base_file = base_file
+        self.logger.debug("Set the base file name to: %s", self.base_file)
         self.merge_files = merge_files
         self.logger.debug("Set the merge files to: %s", self.merge_files)
         self.out_file_name = out_file_name
@@ -154,10 +155,10 @@ class ConfigMerger:
 
     def load_config(self):
         """
-        Loads the base config gile into self.base_config
+        Loads self.base_file into self.base_config
         """
         self.logger.debug("Loading the base config")
-        with open(self.base_file_name, 'r') as config_file:
+        with open(self.base_file, 'r') as config_file:
             kernel_config = {}
             self.logger.info("Processing the config file: %s", config_file.name)
             for line in config_file.readlines():
@@ -177,7 +178,7 @@ class ConfigMerger:
                     self.logger.debug(e)
             # Throw a value error if the file could not be processed
             if not kernel_config:
-                raise ValueError(f"Failed to load base config from {self.base_file_name}")
+                raise ValueError(f"Failed to load base config from {self.base_file}")
         self.base_config = kernel_config
 
     def merge_config(self, merge_file_name):
@@ -229,7 +230,7 @@ class ConfigMerger:
         Uses allnoconfig if allnoconfig is True, otherwise uses alldefconfig
         Substitutes the generated config into KCONFIG_ALLCONFIG
         """
-        make_args = f"make KCONFIG_ALLCONFIG={self.base_fil_name} "
+        make_args = f"make KCONFIG_ALLCONFIG={self.base_file} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
         logger.debug("Args: %s", make_args)
         output = os.system(make_args)
@@ -254,7 +255,7 @@ class ConfigMerger:
         for merge_file in self.merge_files:
             self.merge_config(merge_file)
         logger.info("Merging has completed")
-      
+
     def write_config(self):
         """
         Takes a dictionary where the name is the config variable name, and the value is the... value
@@ -303,7 +304,7 @@ if __name__ == '__main__':
                         help="Enable strict mode, the script will fail if any value is redefined")
     # First take the base argument
     # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG as the base file
-    parser.add_argument('base_file_name',
+    parser.add_argument('base_file',
                         type=str,
                         help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
     # Then take the rest of the arguments as files to open
@@ -328,18 +329,18 @@ if __name__ == '__main__':
     # If the default flag is enabled, move the passed base file to the merge files
     if args.d or not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG)
-        base_file_name = DEFAULT_CONFIG
-        merge_files.append(args.base_file_name)
+        base_file = DEFAULT_CONFIG
+        merge_files.append(args.base_file)
         # if -d is passed, and there are still merge files, add them
         if args.merge_files:
             merge_files += args.merge_files
     else:
-        logger.info("Using %s as the base config file", args.base_file_name)
-        base_file_name = args.base_file_name
+        logger.info("Using %s as the base config file", args.base_file)
+        base_file = args.base_file
         merge_files = args.merge_files
 
     for file in merge_files:
         logger.info("Considering file %s for merge", file)
 
-    config_merger = ConfigMerger(base_file_name, merge_files, out_file_name=args.o, allnoconfig=args.m, strict_mode=args.s, log_level=log_level, no_make=args.m)
+    config_merger = ConfigMerger(base_file, merge_files, out_file_name=args.o, allnoconfig=args.m, strict_mode=args.s, log_level=log_level, no_make=args.m)
 
