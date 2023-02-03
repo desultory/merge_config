@@ -185,12 +185,15 @@ def merge_config(merge_file_name, base_config):
     return merged_config
 
 
-def make_config(base_file='.config'):
+def make_config(alldefconfig=True, base_file='.config'):
     """
     Runs a kernel.config file through make
     outputs a working .config file for the current kernel version
+    Uses allnoconfig if alldefconfig is False, otherwise uses alldefconfig
+    Substitutes the generated config into KCONFIG_ALLCONFIG
     """
-    make_args = f"make KCONFIG_ALLCONFIG={base_file} alldefconfig"
+    make_args = f"make KCONFIG_ALLCONFIG={base_file}"
+    make_args += "alldefconfig" if alldefconfig else "allnoconfig"
     logger.debug("Args: %s", make_args)
     output = os.system(make_args)
     if output != 0:
@@ -243,6 +246,10 @@ if __name__ == '__main__':
     parser.add_argument('-m',
                         action='store_true',
                         help="Only merge fragments, disables using make to compile the final config")
+    # Add the noconfig arg
+    parser.add_argument('-n',
+                        action='store_true',
+                        help="Use allnoconfig instead of alldefconfig")
     # Add a debugging arg
     parser.add_argument('-v',
                         action='store_true',
@@ -294,7 +301,7 @@ if __name__ == '__main__':
         logger.info("Running make on: %s", out_file_name)
         # first load the config before running through make
         script_processed_config = load_config(out_file_name)
-        make_config(out_file_name)
+        make_config(alldefconfig=args.n, base_file=out_file_name)
         # Load the config after it has been processed through make
         processed_config = load_config(out_file_name)
         compare_config(processed_config, script_processed_config)
