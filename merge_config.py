@@ -13,37 +13,22 @@ import logging
 import os
 import regex
 
-
-CONFIG_REGEX = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
-DEFAULT_CONFIG = 'arch/x86/configs/x86_64_defconfig'
+DEFAULT_CONFIG_FILE = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
-DEFINE_START = "CONFIG_"
-# Ensure slightly different rules for captures in quotes/not
-DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
-UNDEFINE_START = "# CONFIG_"
-UNDEFINE_END = " is not set"
-UNDEFINE_REGEX = regex.compile(r"^([a-zA-Z0-9_]+)$")
-
-debug = int(os.environ.get('DEBUG', 0))
-log_level = logging.DEBUG if debug else logging.INFO
-
-logger = logging.getLogger(__name__)
-logger.setLevel(log_level)
-
-stdout_handler = logging.StreamHandler()
-
-stdout_handler.setLevel(log_level)
-stdout_handler.setFormatter(ColorLognameFormatter())
-
-logger.addHandler(stdout_handler)
-
-logger.propagate = False
-logging.debug("Initialized logging")
 
 
 class ConfigMerger:
+    _CONFIG_REGEX = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
+    _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
+    _DEFINE_START = "CONFIG_"
+    # Ensure slightly different rules for captures in quotes/not
+    _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
+    _UNDEFINE_START = "# CONFIG_"
+    _UNDEFINE_END = " is not set"
+    _UNDEFINE_REGEX = regex.compile(r"^([a-zA-Z0-9_]+)$")
     _strict_fail = False
-    def __init__(self, base_file, merge_files, out_file_name=DEFAULT_OUT_FILE, allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
+
+    def __init__(self, base_file, merge_files, out_file_name=_DEFAULT_OUT_FILE, allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
         self.log_level = log_level
         self.logger = logging.getLogger("ConfigMerger")
         self.logger.setLevel(self.log_level)
@@ -89,29 +74,29 @@ class ConfigMerger:
         # Do a basic string clean
         line = file_line.rstrip()
         # Check that the line contains expected config syntax
-        if not regex.search(CONFIG_REGEX, line):
+        if not regex.search(self._CONFIG_REGEX, line):
             raise SyntaxWarning(f"`{line}` does not seem to be a kernel .config parameter")
         # Define should be implied, gets unset by undefinitions
         define = True
 
         # Ensure the entire line starts and ends with these values
-        if line.startswith(UNDEFINE_START) and line.endswith(UNDEFINE_END):
+        if line.startswith(self._UNDEFINE_START) and line.endswith(self._UNDEFINE_END):
             self.logger.debug("Detected an undefine")
             # Removing all portions of the line other than the config variable name
-            config_var = line.replace(UNDEFINE_START, '').replace(UNDEFINE_END, '')
-            if regex.match(UNDEFINE_REGEX, config_var):
+            config_var = line.replace(self._UNDEFINE_START, '').replace(self._UNDEFINE_END, '')
+            if regex.match(self._UNDEFINE_REGEX, config_var):
                 # Extract the regex match if it exists
-                config_var = regex.search(UNDEFINE_REGEX, config_var).group(1)
+                config_var = regex.search(self._UNDEFINE_REGEX, config_var).group(1)
                 self.logger.debug("Detected config variable: %s", config_var)
                 # Return the config variable name, and instructions to not define
                 return config_var, {"define": False}
             else:
                 raise ValueError(f"Configuration variable: {config_var} failed the regex")
         # When a standard definition is detected
-        elif line.startswith(DEFINE_START):
+        elif line.startswith(self._DEFINE_START):
             self.logger.debug("Detected a defintion")
             # Remove the start of the definition for processing
-            config_var = line.replace(DEFINE_START, '')
+            config_var = line.replace(self._DEFINE_START, '')
             # Consider line comments
             if "#" in config_var:
                 self.logger.debug("Comment detected, removing")
@@ -120,7 +105,7 @@ class ConfigMerger:
                 # Clean the string
                 config_var = config_var.strip()
             # Check that the string matches the definition regex
-            if regex.match(DEFINE_REGEX, config_var) or regex.match(DEFINE_REGEX, config_var):
+            if regex.match(self._DEFINE_REGEX, config_var) or regex.match(self._DEFINE_REGEX, config_var):
                 # Find the location of the = character, to split the config_var and value
                 eq_loc = config_var.find('=')
                 # The value is everything after the equal sign
@@ -144,16 +129,16 @@ class ConfigMerger:
         Both objects should be the dict type used in this script
         """
         for config_name in self.old_config:
-            logger.debug("Checking config name: %s", config_name)
+            self.logger.debug("Checking config name: %s", config_name)
             if config_name not in self.base_config:
-                logger.warning("Argument `%s` is undefined when it should be set to: %s",
-                               config_name,
-                               self.old_config[config_name].get('value'))
+                self.logger.warning("Argument `%s` is undefined when it should be set to: %s",
+                                    config_name,
+                                    self.old_config[config_name].get('value'))
             elif self.base_config[config_name] != self.old_config[config_name]:
-                logger.warning("Argument value mismatch for: %s  | Found: %s | Expected: %s",
-                               config_name,
-                               self.base_config[config_name].get('value'),
-                               self.old_config[config_name].get('value'))
+                self.logger.warning("Argument value mismatch for: %s  | Found: %s | Expected: %s",
+                                    config_name,
+                                    self.base_config[config_name].get('value'),
+                                    self.old_config[config_name].get('value'))
 
     def load_config(self):
         """
@@ -222,7 +207,7 @@ class ConfigMerger:
                     self.logger.debug(e)
 
         if merged_config == self.base_config:
-            logger.warning("No changes detected after merging: %s", merge_file_name)
+            self.logger.warning("No changes detected after merging: %s", merge_file_name)
 
         self.base_config = merged_config
 
@@ -235,7 +220,7 @@ class ConfigMerger:
         """
         make_args = f"make KCONFIG_ALLCONFIG={self.out_file_name} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
-        logger.info("Running the following make command: %s", make_args)
+        self.logger.info("Running the following make command: %s", make_args)
         output = os.system(make_args)
         if output != 0:
             raise RuntimeError(f"Unable to run make command, args: {make_args}")
@@ -257,8 +242,8 @@ class ConfigMerger:
         # Sections are applied over the base config as they are processed
         for merge_file in self.merge_files:
             self.merge_config(merge_file)
-        logger.info("Merging has completed")
-    
+        self.logger.info("Merging has completed")
+
         if self._strict_fail:
             raise RuntimeError("Strict mode is enabled and has detected a failure")
 
@@ -279,6 +264,23 @@ class ConfigMerger:
 
 
 if __name__ == '__main__':
+
+    debug = int(os.environ.get('DEBUG', 0))
+    log_level = logging.DEBUG if debug else logging.INFO
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(log_level)
+
+    stdout_handler = logging.StreamHandler()
+
+    stdout_handler.setLevel(log_level)
+    stdout_handler.setFormatter(ColorLognameFormatter())
+
+    logger.addHandler(stdout_handler)
+
+    logger.propagate = False
+    logging.debug("Initialized logging")
+
     # Initialise the arg parser
     parser = argparse.ArgumentParser(prog='merge-config',
                                      description='Merges kernel.config files')
@@ -303,16 +305,16 @@ if __name__ == '__main__':
     # Add the default config arg
     parser.add_argument('-d',
                         action='store_true',
-                        help=f"Use {DEFAULT_CONFIG} as the base file")
+                        help=f"Use {DEFAULT_CONFIG_FILE} as the base file")
     # Add the strict mode arg
     parser.add_argument('-s',
                         action='store_true',
                         help="Enable strict mode, the script will fail if any value is redefined")
     # First take the base argument
-    # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG as the base file
+    # If this is the only argument, use it as the merge file using the DEFAULT_CONFIG_FILE as the base file
     parser.add_argument('base_file',
                         type=str,
-                        help=f"The base kernel file, defaults to {DEFAULT_CONFIG}")
+                        help=f"The base kernel file, defaults to {DEFAULT_CONFIG_FILE}")
     # Then take the rest of the arguments as files to open
     parser.add_argument('merge_files',
                         type=str,
@@ -334,8 +336,8 @@ if __name__ == '__main__':
     # If no merge files are passed, assume the base file is actually a merge file
     # If the default flag is enabled, move the passed base file to the merge files
     if args.d or not args.merge_files:
-        logger.info("Using %s as the base config file", DEFAULT_CONFIG)
-        base_file = DEFAULT_CONFIG
+        logger.info("Using %s as the base config file", DEFAULT_CONFIG_FILE)
+        base_file = DEFAULT_CONFIG_FILE
         merge_files.append(args.base_file)
         # if -d is passed, and there are still merge files, add them
         if args.merge_files:
