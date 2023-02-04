@@ -210,7 +210,6 @@ class ConfigMerger:
         changed = False
         for name, value in merge_config.items():
             if name in self.base_config:
-                self.logger.info("Config var aleady detected in the base config: %s=%s", name, self.base_config.get(name))
                 if self.strict_mode:
                     self.logger.error("Attempting to redefine in strict mode: %s=%s", name, value)
                     self._strict_fail = True
