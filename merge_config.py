@@ -268,15 +268,15 @@ class ConfigMerger:
         """
         for name, config in self.base_config.config.items():
             logger.debug("Checking config name: %s", name)
-            if name not in other_config:
+            if name not in other_config.config:
                 logger.warning("Argument is undefined when it should be set: %s=%s",
                                name,
-                               self.base_config[name])
-            elif other_config[name] != self.base_config[name]:
+                               config.name)
+            elif other_config.config[name] != self.base_config.config[name]:
                 logger.warning("Argument value mismatch for: %s :: Found: %s | Expected: %s",
                                name,
-                               other_config[name],
-                               self.base_config[name])
+                               other_config.config[name].value,
+                               config.value)
             else:
                 logger.debug("Config check passed")
 
