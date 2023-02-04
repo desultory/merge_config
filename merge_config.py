@@ -81,7 +81,7 @@ class ConfigMerger:
                 name, value = self.parse_line(parameter)
                 self.logger.info("Loaded parameter from the command line: %s=%s", name, value)
                 params[name] = value
-            self.merge_config(params)        
+            self.merge_config(params)
 
         self.write_config()
 
@@ -176,12 +176,12 @@ class ConfigMerger:
             if config_name not in other_config:
                 self.logger.warning("Argument `%s` is undefined when it should be set to: %s",
                                     config_name,
-                                    self.base_config[config_name].get('value'))
+                                    self.base_config[config_name])
             elif other_config[config_name] != self.base_config[config_name]:
                 self.logger.warning("Argument value mismatch for: %s  | Found: %s | Expected: %s",
                                     config_name,
-                                    other_config[config_name].get('value'),
-                                    self.base_config[config_name].get('value'))
+                                    other_config[config_name],
+                                    self.base_config[config_name])
             else:
                 self.logger.debug("Config check passed")
 
