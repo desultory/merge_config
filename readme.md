@@ -22,9 +22,21 @@ Merges .config files.
 
 ## Example usage
 
-` /usr/src/linux # merge_config.py 99-custom.config `
+Merge a file named 99-custom.config over the default kernel config
 
-` /usr/src/linux # merge_config.py 99-custom.config -m` # Write changes but do not run make
+`/usr/src/linux # merge_config.py 99-custom.config `
 
-` /usr/src/linux # merge_config.py 99-custom.config -p '# CONFIG_KEXEC is not set'` # Pass an undefine for kexec last
+
+Write changes but do not run make
+
+`/usr/src/linux # merge_config.py 99-custom.config -m`
+
+
+Pass an undefine for the kexec config option last
+
+`/usr/src/linux # merge_config.py 99-custom.config -p '# CONFIG_KEXEC is not set'`
+
+Merge serveral files over the default
+
+`/usr/src/linux # merge_config.py -d 99-custom*`
 
