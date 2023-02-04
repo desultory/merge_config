@@ -258,7 +258,7 @@ class ConfigMerger:
 
         if not self.no_make:
             self.make_config()
-            make_processed_config = self._load_config(self.out_file_name)
+            make_processed_config = KernelConfig(self.out_file_name)
             self._compare_config(make_processed_config)
 
     def _compare_config(self, other_config):
