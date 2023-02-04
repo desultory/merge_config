@@ -21,7 +21,7 @@ class ConfigMerger:
     _CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
     _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
     # Ensure slightly different rules for captures in quotes/not
-    _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([0-9])+|[yn]+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
+    _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([0-9])+|[ynm]+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
     _UNDEFINE_REGEX = re.compile(r"^(# CONFIG_)([a-zA-Z0-9_]+)( is not set)$")
     _strict_fail = False
 
