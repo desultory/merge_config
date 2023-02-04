@@ -311,7 +311,7 @@ class ConfigMerger:
             if name not in other_config.config and config.define_type == ConfigLineTypes.DEFINE:
                 logger.warning("Argument is undefined when it should be set: %s",
                                config)
-            elif other_config.config[name].value != config.value:
+            elif name in other_config.config and other_config.config.get(name).value != config.value:
                 logger.warning("Argument value mismatch for: %s :: Found: %s | Expected: %s",
                                name,
                                other_config.config[name].value,
