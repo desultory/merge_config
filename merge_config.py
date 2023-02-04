@@ -266,7 +266,7 @@ class ConfigMerger:
         Compare the key differences between then loaded config and old config
         Both objects should be the dict type used in this script
         """
-        for name, config in self.base_config.items():
+        for name, config in self.base_config.config.items():
             logger.debug("Checking config name: %s", name)
             if name not in other_config:
                 logger.warning("Argument is undefined when it should be set: %s=%s",
