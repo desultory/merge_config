@@ -17,6 +17,12 @@ DEFAULT_CONFIG_FILE = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 
 
+class ParserWarning(Exception):
+    pass
+
+class ParserError(Exception):
+    pass
+
 class ConfigMerger:
     _CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
     _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
@@ -59,8 +65,6 @@ class ConfigMerger:
         self.no_make = no_make
         self.logger.debug("Set no make to: %s", self.no_make)
 
-        self.process()
-
     def process(self):
         """
         Processes the config based on the supplied parameters
@@ -91,7 +95,7 @@ class ConfigMerger:
         """
         # Check that the line contains expected config syntax
         if not re.search(self._CONFIG_REGEX, line):
-            raise SyntaxWarning(f"The following line does not seem to contain a kernel .config parameter: {line}")
+            raise ParserWarning(f"The following line does not seem to contain a kernel .config parameter: {line}")
 
         if re.match(self._DEFINE_REGEX, line):
             return True
@@ -99,7 +103,7 @@ class ConfigMerger:
         if re.match(self._UNDEFINE_REGEX, line):
             return False
 
-        raise SyntaxWarning(f"Unable to interpret config parameter: {line}")
+        raise ParserWarning(f"Unable to interpret config parameter: {line}")
 
     def parse_line(self, input_line):
         """
@@ -118,7 +122,7 @@ class ConfigMerger:
         """
         line = self.strip_comment(input_line)
         if not re.match(self._DEFINE_REGEX, line):
-            raise SyntaxError(f"The input line failed the definition regex: {line}")
+            raise ParserError(f"The input line failed the definition regex: {line}")
 
         return self.split_parameter(input_line)
 
@@ -152,7 +156,7 @@ class ConfigMerger:
         Returns the name of the config variable
         """
         if not re.match(self._UNDEFINE_REGEX, input_line):
-            raise SyntaxError(f"The input line failed the undefinition regex: {input_line}")
+            raise ParserError(f"The input line failed the undefinition regex: {input_line}")
 
         self.logger.debug("Parsing line: %s", input_line)
         name = "CONFIG_" + re.search(self._UNDEFINE_REGEX, input_line).group(2)
@@ -200,9 +204,9 @@ class ConfigMerger:
                     name, value = self.parse_line(line)
                     kernel_config[name] = value
                 # Allow the value errors but throw errors
-                except SyntaxError as e:
+                except ParserError as e:
                     self.logger.error(e)
-                except SyntaxWarning as e:
+                except ParserWarning as e:
                     self.logger.debug(e)
             # Throw a value error if the file could not be processed
             if not kernel_config:
@@ -287,7 +291,7 @@ class ConfigMerger:
                 name, value = self.parse_line(parameter)
                 self.logger.info("Loaded parameter from the command line: %s=%s", name, value)
                 params[name] = value
-            except SyntaxWarning as e:
+            except ParserWarning as e:
                 self.logger.warning(e)
         try:
             self.merge_config(params)
@@ -415,3 +419,5 @@ if __name__ == '__main__':
                                  strict_mode=args.s,
                                  log_level=log_level,
                                  no_make=args.m)
+
+    config_merger.process()
