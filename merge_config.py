@@ -228,6 +228,8 @@ class ConfigMerger:
                 if self.strict_mode:
                     self.logger.error("Attempting to redefine in strict mode: %s=%s", name, value)
                     self._strict_fail = True
+                elif value == self.base_config[name]:
+                    self.logger.debug("Merge value equals base value: %s=%s", name, value)
                 elif value:
                     self.logger.info("Updated value: %s=%s", name, value)
                     self.base_config[name] = value
@@ -245,9 +247,8 @@ class ConfigMerger:
                     self.logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
                     self.base_config[name] = value
                     changed = True
-
         if not changed:
-            raise ValueError("No changes detected after processing config")
+            raise RuntimeWarning("No changes detected after processing config")
 
     def make_config(self):
         """
