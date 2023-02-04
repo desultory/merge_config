@@ -61,16 +61,12 @@ class ConfigMerger:
 
         self.process()
 
-    def set_base_config(self, base_config):
-        self.logger.debg("Setting the base config")
-        self.base_config = base_config
-
     def process(self):
         """
         Processes the config based on the supplied parameters
         """
         # Load the base config
-        self.set_base_config(self.load_config())
+        self.base_config = self.load_config()
 
         # Merge config files
         if self.merge_files:
@@ -270,7 +266,7 @@ class ConfigMerger:
         # Load the base config from the passed base config file if it's not defined
         if not self.base_config:
             self.logger.warning("Attempting to merge configs when no base config is loaded")
-            self.set_base_config(self.load_config())
+            self.base_config = self.load_config()
 
         # Keep processing merge files while the list is populated
         # Item entries are popped from the list when processing has started
