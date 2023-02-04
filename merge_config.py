@@ -410,6 +410,8 @@ class ConfigMerger:
         writes the base config to the output file
         """
         logger.info("Writing config file: %s", self.out_file_name)
+        if os.path.exists(self.out_file_name):
+            logger.warning("Kernel .config file already exist, overwriting: %s", self.out_file_name)
         with open(self.out_file_name, 'w') as out_file:
             out_file.write(str(self.base_config))
         logger.info("Wrote config file: %s", self.out_file_name)
