@@ -285,6 +285,18 @@ class ConfigMerger:
         except RuntimeWarning as e:
             self.logger.warning("%s: passed parameters", e)
 
+    def __str__(self):
+        """
+        Returns self.base_config as a string, as it should be represented in a config file
+        """
+        out_str = ''
+        for name, value in self.base_config.items():
+            if value:
+                out_str += f"{name}={value}\n"
+            else:
+                out_str += f"# {name} is not set\n"
+        return out_str
+
     def write_config(self):
         """
         Takes a dictionary where the name is the config variable name, and the value is the... value
@@ -293,13 +305,7 @@ class ConfigMerger:
         """
         self.logger.info("Writing config file: %s", self.out_file_name)
         with open(self.out_file_name, 'w') as out_file:
-            out_file.write("## Starting config\n")
-            for name, value in self.base_config.items():
-                if value:
-                    out_file.write(f"{name}={value}\n")
-                else:
-                    out_file.write(f"# {name} is not set\n")
-            out_file.write("## Ending config\n")
+            out_file.write(self.__str__())
         self.logger.info("Wrote config file: %s", self.out_file_name)
 
 
@@ -400,4 +406,3 @@ if __name__ == '__main__':
                                  strict_mode=args.s,
                                  log_level=log_level,
                                  no_make=args.m)
-
