@@ -328,7 +328,7 @@ class ConfigMerger:
         env = os.environ.copy()
         env['KCONFIG_ALLCONFIG'] = self.out_file_name
         env['KCONFIG_CONFIG'] = self.out_file_name
-        make_args = "make allnoconfig" if self.allnoconfig else "alldefconfig"
+        make_args = "make allnoconfig" if self.allnoconfig else "make alldefconfig"
         logger.info("Running the following make command: %s", make_args)
         try:
             subprocess.check_output(make_args.split(), env=env, stderr=subprocess.STDOUT)
