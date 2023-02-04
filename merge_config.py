@@ -499,7 +499,7 @@ if __name__ == '__main__':
                                  merge_files,
                                  custom_parameters=args.p,
                                  out_file_name=args.o,
-                                 allnoconfig=args.m,
+                                 allnoconfig=args.n,
                                  strict_mode=args.s,
                                  no_make=args.m)
 
