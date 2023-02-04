@@ -257,6 +257,7 @@ class ConfigMerger:
             logger.error("No merge files or custom parameters specified")
 
         if not self.no_make:
+            self.write_config()
             self.make_config()
             make_processed_config = KernelConfig(self.out_file_name)
             self._compare_config(make_processed_config)
