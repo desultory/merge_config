@@ -143,10 +143,8 @@ class KernelConfigParameter:
         if not re.match(self._DEFINE_REGEX, self.config_line):
             raise ParserError(f"The input line failed the definition regex: {self.config_line}")
 
-        eq_loc = self.config_line.find('=')
-        self.name = self.config_line[:eq_loc]
+        self.name, _, self.value = self.config_line.partition('=')
         logger.debug("Set name: %s", self.name)
-        self.value = self.config_line[eq_loc + 1:]
         logger.debug("Set value: %s", self.value)
 
     def strip_comment(self):
