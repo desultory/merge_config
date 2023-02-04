@@ -351,7 +351,7 @@ class ConfigMerger:
                     self.base_config.config[name] = config
                     changed = True
                 elif config.define_type == ConfigLineTypes.UNDEFINE:
-                    logger.warning("Undefining a parameter which is not currently defined: %s", name)
+                    logger.info("Undefining a parameter which is not currently defined: %s", name)
                     self.base_config.config[name] = config
                     changed = True
                 else:
