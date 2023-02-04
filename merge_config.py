@@ -325,11 +325,13 @@ class ConfigMerger:
         Substitutes the generated config into KCONFIG_ALLCONFIG
         https://docs.kernel.org/kbuild/kconfig.html
         """
-        make_args = f"make KCONFIG_ALLCONFIG={self.out_file_name} KCONFIG_CONFIG={self.out_file_name} "
-        make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
+        env = os.environ.copy()
+        env['KCONFIG_ALLCONFIG'] = self.out_file_name
+        env['KCONFIG_CONFIG'] = self.out_file_name
+        make_args = "make allnoconfig" if self.allnoconfig else "alldefconfig"
         logger.info("Running the following make command: %s", make_args)
         try:
-            subprocess.check_output(make_args.split(), stderr=subprocess.STDOUT)
+            subprocess.check_output(make_args.split(), env=env, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Unable to run make command, args: {make_args}  |  error: {e}")
 
