@@ -322,8 +322,9 @@ class ConfigMerger:
         outputs a working .config file for the current kernel version
         Uses allnoconfig if allnoconfig is True, otherwise uses alldefconfig
         Substitutes the generated config into KCONFIG_ALLCONFIG
+        https://docs.kernel.org/kbuild/kconfig.html
         """
-        make_args = f"make KCONFIG_ALLCONFIG={self.out_file_name} "
+        make_args = f"make KCONFIG_ALLCONFIG={self.out_file_name} KCONFIG_CONFIG={self.out_file_name} "
         make_args += "allnoconfig" if self.allnoconfig else "alldefconfig"
         logger.info("Running the following make command: %s", make_args)
         try:
