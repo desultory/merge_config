@@ -18,6 +18,7 @@ Merges .config files.
 | -n            |                                   | Use allnoconfig instead of alldefconfig                                                                       |
 | -s            |                                   | Strict mode: Fails if there is a parameter redefinition                                                       |
 | -o		    | .config			                | The output file, defaults to `.config`									                                    |
+| -p            |                                   | Custom paramater, ex: `-p 'CONFIG_TEST=1'` `-p '# CONFIG_TEST is not set'`                                    |
 
 ## Example usage
 

@@ -19,11 +19,8 @@ DEFAULT_OUT_FILE = '.config'
 
 CONFIG_REGEX = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
 _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
-_DEFINE_START = "CONFIG_"
 # Ensure slightly different rules for captures in quotes/not
 DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
-_UNDEFINE_START = "# CONFIG_"
-_UNDEFINE_END = " is not set"
 UNDEFINE_REGEX = regex.compile(r"^([a-zA-Z0-9_]+)$")
 _strict_fail = False
 
@@ -72,13 +69,19 @@ class ConfigMerger:
         self.base_config = self.load_config()
 
         # Merge config files
-        self.process_config_merge()
+        if self.merge_files:
+            self.process_config_merge()
+        elif not self.custom_parameters:
+            self.logger.error("No merge files or custom parameters specified")
 
         if self.custom_parameters:
+            params = {}
             for parameter in self.custom_parameters:
                 self.logger.debug("Attempting to parse passed config: %s", parameter)
                 name, value = self.parse_line(parameter)
                 self.logger.info("Loaded parameter from the command line: %s=%s", name, value)
+                params[name] = value
+            self.merge_config(params)        
 
         self.write_config()
 
@@ -213,9 +216,7 @@ class ConfigMerger:
         If strict mode is enabled, errors will be emitted when parameters are redefined
         The script should process them all, but will eventually fail
         """
-
         changed = False
-
         for name, value in merge_config.items():
             if name in self.base_config:
                 self.logger.info("Config var aleady detected in the base config: %s=%s", name, self.base_config.get(name))
@@ -223,7 +224,7 @@ class ConfigMerger:
                     self.logger.error("Attempting to redefine in strict mode: %s=%s", name, value)
                     self._strict_fail = True
                 elif value:
-                    self.logger.info("New value: %s=%s", name, value)
+                    self.logger.info("Updated value: %s=%s", name, value)
                     self.base_config[name] = value
                     changed = True
                 else:
@@ -232,7 +233,7 @@ class ConfigMerger:
                     changed = True
             else:
                 if value:
-                    self.logger.info("New config parameter set: %s=%s", name, value)
+                    self.logger.info("New config parameter: %s=%s", name, value)
                     self.base_config[name] = value
                     changed = True
                 else:
@@ -371,9 +372,8 @@ if __name__ == '__main__':
     logger.debug("Parsed the arguments")
 
     merge_files = []
-    # If no merge files are passed, assume the base file is actually a merge file
     # If the default flag is enabled, move the passed base file to the merge files
-    if args.d or not args.merge_files:
+    if args.d:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG_FILE)
         base_file = DEFAULT_CONFIG_FILE
         merge_files.append(args.base_file)
