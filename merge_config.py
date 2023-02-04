@@ -384,7 +384,7 @@ if __name__ == '__main__':
 
     merge_files = []
     # If the default flag is enabled, move the passed base file to the merge files
-    if args.d:
+    if args.d or args.base_file and not args.merge_files:
         logger.info("Using %s as the base config file", DEFAULT_CONFIG_FILE)
         base_file = DEFAULT_CONFIG_FILE
         merge_files.append(args.base_file)
