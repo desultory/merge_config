@@ -329,32 +329,36 @@ class ConfigMerger:
         The script should process them all, but will eventually fail
         """
         changed = False
-        for name, value in merge_config.config.items():
+        for name, config in merge_config.config.items():
             if name in self.base_config.config:
                 if self.strict_mode:
-                    logger.error("Attempting to redefine in strict mode: %s", value)
+                    logger.error("Attempting to redefine in strict mode: %s", config)
                     self._strict_fail = True
-                elif value == self.base_config.config[name]:
-                    logger.debug("Merge value equals base value: %s", value)
-                elif value:
-                    logger.info("Updated value: %s", value)
-                    self.base_config.config[name] = value
+                elif config.value == self.base_config.config[name].value:
+                    logger.debug("Merge value equals base value: %s", config)
+                elif config.define_type == ConfigLineTypes.DEFINE:
+                    logger.info("Updated value: %s", config)
+                    self.base_config.config[name] = config
                     changed = True
-                elif not value and not self.base_config[name]:
-                    logger.debug("Value already marked for delection: %s", value)
-                else:
+                elif config.define_type == ConfigLineTypes.UNDEFINE and self.base_config.config[name].define_type == ConfigLineTypes.UNDEFINE:
+                    logger.debug("Value already marked for delection: %s", config)
+                elif config.define_type == ConfigLineTypes.UNDEFINE:
                     logger.info("Marking config var for deletion: %s", name)
-                    self.base_config.config[name] = value
-                    changed = True
-            else:
-                if value:
-                    logger.info("New config parameter: %s", value)
-                    self.base_config.config[name] = value
+                    self.base_config.config[name] = config
                     changed = True
                 else:
-                    logger.warning("Undefining a parameter which is not currently defined: %s", name)
-                    self.base_config.config[name] = value
+                    logger.warning("Unexpected config value: %s", config)
+            else:
+                if config.define_type == ConfigLineTypes.DEFINE:
+                    logger.info("New config parameter: %s", config)
+                    self.base_config.config[name] = config
                     changed = True
+                elif config.define_type == ConfigLineTypes.UNDEFINE:
+                    logger.warning("Undefining a parameter which is not currently defined: %s", name)
+                    self.base_config.config[name] = config
+                    changed = True
+                else:
+                    logger.warning("Unexpected config value: %s", config)
         if not changed:
             raise RuntimeWarning("No changes detected after processing config")
 
