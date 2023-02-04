@@ -228,8 +228,8 @@ class ConfigMerger:
                     self.base_config[name] = value
                     changed = True
                 else:
-                    self.logger.info("Deleting config entry for config var: %s", name)
-                    del self.base_config[name]
+                    self.logger.info("Marking config var for deletion: %s", name)
+                    self.base_config[name] = value
                     changed = True
             else:
                 if value:
