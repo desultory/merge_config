@@ -272,7 +272,7 @@ class ConfigMerger:
                 logger.warning("Argument is undefined when it should be set: %s=%s",
                                name,
                                config.name)
-            elif other_config.config[name] != self.base_config.config[name]:
+            elif other_config.config[name].value != config.value:
                 logger.warning("Argument value mismatch for: %s :: Found: %s | Expected: %s",
                                name,
                                other_config.config[name].value,
