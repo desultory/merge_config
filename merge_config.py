@@ -25,7 +25,15 @@ class ConfigMerger:
     _UNDEFINE_REGEX = re.compile(r"^(# CONFIG_)([a-zA-Z0-9_]+)( is not set)$")
     _strict_fail = False
 
-    def __init__(self, base_file, merge_files, out_file_name=_DEFAULT_OUT_FILE, custom_parameters=[], allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
+    def __init__(self,
+                 base_file,
+                 merge_files,
+                 out_file_name=_DEFAULT_OUT_FILE,
+                 custom_parameters=[],
+                 allnoconfig=False,
+                 no_make=False,
+                 strict_mode=False,
+                 log_level=logging.WARNING):
         self.log_level = log_level
         self.logger = logging.getLogger("ConfigMerger")
         self.logger.setLevel(self.log_level)
