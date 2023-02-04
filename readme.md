@@ -23,6 +23,8 @@ Merges .config files.
 ## Example usage
 
 ` /usr/src/linux # merge_config.py 99-custom.config `
+
 ` /usr/src/linux # merge_config.py 99-custom.config -m` # Write changes but do not run make
+
 ` /usr/src/linux # merge_config.py 99-custom.config -p '# CONFIG_KEXEC is not set'` # Pass an undefine for kexec last
 
