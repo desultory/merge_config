@@ -238,6 +238,8 @@ class ConfigMerger:
                     changed = True
                 else:
                     self.logger.warning("Attempting to undefine a parameter which is not defined: %s", name)
+                    self.base_config[name] = value
+                    changed = True
 
         if not changed:
             raise ValueError("No changes detected after processing config")
