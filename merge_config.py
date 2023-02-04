@@ -11,26 +11,26 @@ from ColorLognameFormatter import ColorLognameFormatter
 import argparse
 import logging
 import os
-import regex
+import re
 
 DEFAULT_CONFIG_FILE = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 
 
-CONFIG_REGEX = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
+CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
 _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
 # Ensure slightly different rules for captures in quotes/not
 DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
-UNDEFINE_REGEX = regex.compile(r"^([a-zA-Z0-9_]+)$")
+UNDEFINE_REGEX = re.compile(r"^([a-zA-Z0-9_]+)$")
 _strict_fail = False
 
 
 class ConfigMerger:
-    _CONFIG_REGEX = regex.compile(r'(CONFIG)([a-zA-Z0-9_])+')
+    _CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
     _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
     # Ensure slightly different rules for captures in quotes/not
     _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
-    _UNDEFINE_REGEX = regex.compile(r"^(# CONFIG_)([a-zA-Z0-9_]+)( is not set)$")
+    _UNDEFINE_REGEX = re.compile(r"^(# CONFIG_)([a-zA-Z0-9_]+)( is not set)$")
     _strict_fail = False
 
     def __init__(self, base_file, merge_files, out_file_name=_DEFAULT_OUT_FILE, custom_parameters=[], allnoconfig=False, strict_mode=False, log_level=logging.WARNING, no_make=False):
@@ -66,7 +66,7 @@ class ConfigMerger:
         Processes the config based on the supplied parameters
         """
         # Load the base config
-        self.base_config = self.load_config()
+        self.load()
 
         # Merge config files
         if self.merge_files:
@@ -87,7 +87,7 @@ class ConfigMerger:
 
         if not self.no_make:
             self.make_config()
-            make_processed_config = self.load_config(self.out_file_name)
+            make_processed_config = self._load_config(self.out_file_name)
             self.compare_config(make_processed_config)
 
     def classify_line(self, line):
@@ -96,13 +96,13 @@ class ConfigMerger:
         Returns true for a define, false for an undefine
         """
         # Check that the line contains expected config syntax
-        if not regex.search(CONFIG_REGEX, line):
+        if not re.search(CONFIG_REGEX, line):
             raise SyntaxWarning(f"The following line does not seem to contain a kernel .config parameter: {line}")
 
-        if regex.match(self._DEFINE_REGEX, line):
+        if re.match(self._DEFINE_REGEX, line):
             return True
 
-        if regex.match(self._UNDEFINE_REGEX, line):
+        if re.match(self._UNDEFINE_REGEX, line):
             return False
 
         raise SyntaxWarning(f"Unexpected config line: {line}")
@@ -123,7 +123,7 @@ class ConfigMerger:
         Returns the name and value of the config line
         """
         line = self.strip_comment(input_line)
-        if not regex.match(self._DEFINE_REGEX, line):
+        if not re.match(self._DEFINE_REGEX, line):
             raise SyntaxError(f"The input line failed the definition regex: {line}")
 
         return self.split_parameter(input_line)
@@ -157,11 +157,11 @@ class ConfigMerger:
         Attempts to parse a config undefinition
         Returns the name of the config variable
         """
-        if not regex.match(self._UNDEFINE_REGEX, input_line):
+        if not re.match(self._UNDEFINE_REGEX, input_line):
             raise SyntaxError(f"The input line failed the undefinition regex: {input_line}")
 
         self.logger.debug("Parsing line: %s", input_line)
-        name = "CONFIG_" + regex.search(self._UNDEFINE_REGEX, input_line).group(2)
+        name = "CONFIG_" + re.search(self._UNDEFINE_REGEX, input_line).group(2)
         self.logger.debug("Detected undefine for variable: %s", name)
 
         return name, False
@@ -185,13 +185,18 @@ class ConfigMerger:
             else:
                 self.logger.debug("Config check passed")
 
-    def load_config(self, config_file_name=None):
+    def load(self, config_file_name=None):
         """
-        Loads self.base_file into self.base_config
+        Loads a config file, self.base_file by default, into self.base_config
         """
         if not config_file_name:
             config_file_name = self.base_file
+        self.base_config = self._load_config(config_file_name)
 
+    def _load_config(self, config_file_name=None):
+        """
+        Processes and returns a config file as a dict
+        """
         self.logger.debug("Loading the config file: %s", config_file_name)
         with open(config_file_name, 'r') as config_file:
             kernel_config = {}
@@ -268,7 +273,7 @@ class ConfigMerger:
         # Load the base config from the passed base config file if it's not defined
         if not self.base_config:
             self.logger.warning("Attempting to merge configs when no base config is loaded")
-            self.base_config = self.load_config()
+            self.load()
 
         # Keep processing merge files while the list is populated
         # Item entries are popped from the list when processing has started
@@ -277,7 +282,7 @@ class ConfigMerger:
         for merge_file in self.merge_files:
             try:
                 self.logger.info("Attempting to merge file: %s", merge_file)
-                self.merge_config(self.load_config(merge_file))
+                self.merge_config(self._load_config(merge_file))
             except RuntimeWarning as e:
                 self.logger.warning("%s file: %s", e, merge_file)
 
