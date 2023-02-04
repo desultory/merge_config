@@ -174,7 +174,7 @@ class ConfigMerger:
         for config_name in self.base_config:
             self.logger.debug("Checking config name: %s", config_name)
             if config_name not in other_config:
-                self.logger.warning("Argument `%s` is undefined when it should be set to: %s",
+                self.logger.warning("Argument is undefined when it should be set to: %s=%s",
                                     config_name,
                                     self.base_config[config_name])
             elif other_config[config_name] != self.base_config[config_name]:
