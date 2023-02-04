@@ -219,6 +219,8 @@ class ConfigMerger:
                     self.logger.info("Updated value: %s=%s", name, value)
                     self.base_config[name] = value
                     changed = True
+                elif not value and not self.base_config[name]:
+                    self.logger.debug("Value already marked for delection: %s=%s", name, value)
                 else:
                     self.logger.info("Marking config var for deletion: %s", name)
                     self.base_config[name] = value
