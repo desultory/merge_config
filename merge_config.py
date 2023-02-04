@@ -261,6 +261,8 @@ class ConfigMerger:
             self.make_config()
             make_processed_config = KernelConfig(self.out_file_name)
             self._compare_config(make_processed_config)
+        else:
+            self.write_config()
 
     def _compare_config(self, other_config):
         """
@@ -460,4 +462,3 @@ if __name__ == '__main__':
                                  no_make=args.m)
 
     config_merger.process()
-    config_merger.write_config()
