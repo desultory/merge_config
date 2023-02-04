@@ -17,19 +17,11 @@ DEFAULT_CONFIG_FILE = 'arch/x86/configs/x86_64_defconfig'
 DEFAULT_OUT_FILE = '.config'
 
 
-CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
-_DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
-# Ensure slightly different rules for captures in quotes/not
-DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
-UNDEFINE_REGEX = re.compile(r"^([a-zA-Z0-9_]+)$")
-_strict_fail = False
-
-
 class ConfigMerger:
     _CONFIG_REGEX = re.compile(r'(CONFIG)([a-zA-Z0-9_])+')
     _DEFAULT_OUT_FILE = DEFAULT_OUT_FILE
     # Ensure slightly different rules for captures in quotes/not
-    _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([a-zA-Z0-9])+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
+    _DEFINE_REGEX = r'^([a-zA-Z0-9_])+=(-?([0-9])+|[yn]+|"([a-zA-Z0-9/_.,-=\(\) ])*")$'
     _UNDEFINE_REGEX = re.compile(r"^(# CONFIG_)([a-zA-Z0-9_]+)( is not set)$")
     _strict_fail = False
 
@@ -70,18 +62,12 @@ class ConfigMerger:
 
         # Merge config files
         if self.merge_files:
-            self.process_config_merge()
+            self.process_merge_files()
         elif not self.custom_parameters:
             self.logger.error("No merge files or custom parameters specified")
 
         if self.custom_parameters:
-            params = {}
-            for parameter in self.custom_parameters:
-                self.logger.debug("Attempting to parse passed config: %s", parameter)
-                name, value = self.parse_line(parameter)
-                self.logger.info("Loaded parameter from the command line: %s=%s", name, value)
-                params[name] = value
-            self.merge_config(params)
+            self.process_custom_parameters()
 
         self.write_config()
 
@@ -96,7 +82,7 @@ class ConfigMerger:
         Returns true for a define, false for an undefine
         """
         # Check that the line contains expected config syntax
-        if not re.search(CONFIG_REGEX, line):
+        if not re.search(self._CONFIG_REGEX, line):
             raise SyntaxWarning(f"The following line does not seem to contain a kernel .config parameter: {line}")
 
         if re.match(self._DEFINE_REGEX, line):
@@ -105,7 +91,7 @@ class ConfigMerger:
         if re.match(self._UNDEFINE_REGEX, line):
             return False
 
-        raise SyntaxWarning(f"Unexpected config line: {line}")
+        raise SyntaxWarning(f"Unable to interpret config parameter: {line}")
 
     def parse_line(self, input_line):
         """
@@ -264,21 +250,10 @@ class ConfigMerger:
         if output != 0:
             raise RuntimeError(f"Unable to run make command, args: {make_args}")
 
-    def process_config_merge(self):
+    def process_merge_files(self):
         """
-        Merges
-        Processes the base file into base config
-        Iterates through the merge files and attempts to apply them over the base file
-        returns the merged base file once complete
+        Iterates through the merge files and attempts to apply them over the base config
         """
-        # Load the base config from the passed base config file if it's not defined
-        if not self.base_config:
-            self.logger.warning("Attempting to merge configs when no base config is loaded")
-            self.load()
-
-        # Keep processing merge files while the list is populated
-        # Item entries are popped from the list when processing has started
-        # This should not run endlessly but may fail to process each merge section
         # Sections are applied over the base config as they are processed
         for merge_file in self.merge_files:
             try:
@@ -291,6 +266,24 @@ class ConfigMerger:
 
         if self._strict_fail:
             raise RuntimeError("Strict mode is enabled and has detected a failure")
+
+    def process_custom_parameters(self):
+        """
+        Iterates through the custom parameters and attempts to apply them over the base config
+        """
+        params = {}
+        for parameter in self.custom_parameters:
+            self.logger.debug("Attempting to parse passed config parameter: %s", parameter)
+            try:
+                name, value = self.parse_line(parameter)
+                self.logger.info("Loaded parameter from the command line: %s=%s", name, value)
+                params[name] = value
+            except SyntaxWarning as e:
+                self.logger.warning(e)
+        try:
+            self.merge_config(params)
+        except RuntimeWarning as e:
+            self.logger.warning("%s: passed parameters", e)
 
     def write_config(self):
         """
