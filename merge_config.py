@@ -278,7 +278,8 @@ class KConfig:
         subdirs = [subdir.path for subdir in os.scandir() if subdir.path.replace('./', '') not in self._EXCLUDED_SEARCH_DIRS and subdir.is_dir()]
         for subdir in subdirs:
             logger.debug("Scanning directory for Kconfig files: %s", subdir)
-            found_kconfigs = [subdir + re.search(self._KCONFIG_FILE_REGEX, file.path) for file in os.scandir(subdir) if re.search(self._KCONFIG_FILE_REGEX, file.path)]
+            found_kconfigs = [subdit + re.search(self._KCONFIG_FILE_REGEX, file.path).group() for file in os.scandir(subdir) if re.search(self._KCONFIG_FILE_REGEX, file.path)]
+            
             print(found_kconfigs)
 
 
