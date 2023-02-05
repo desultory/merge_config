@@ -1,0 +1,12 @@
+# Enable general virtualization
+CONFIG_VIRTUALIZATION=y
+# Enable KVM
+CONFIG_KVM=y
+# CONFIG_KVM_WERROR is not set
+
+# Enable AMD virtualization support
+# CONFIG_KVM_AMD=y
+# Enable Intel virtualizatio
+# CONFIG_KVM_INTEL=y
+# Enable in server config
+
