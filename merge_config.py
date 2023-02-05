@@ -255,6 +255,33 @@ class KernelConfig:
         return out_str
 
 
+class KConfig:
+    """
+    Parses and represents KConfig information
+    """
+    _KCONFIG_FILE_REGEX = re.compile(r"/(Kconfig)(\.|-)?([a-zA-Z0-9])*$")
+    _EXCLUDED_SEARCH_DIRS = ['Documentation']
+
+    def __init__(self):  
+        logger.debug("Initializing KConfig")
+        self._load()
+
+    def _load(self):
+        """
+        Attempts to load the kconfig information from the current directory
+        Gets all directories under the current directory
+        Checks for a "Kconfig*"
+        Ex "Kconfig" "Kconfig.isoched"
+        """
+        kconfig_files = []
+        # Returns all directories under the current path, excluding ones defined in _EXCLUDED_SEARCH_DIRS
+        subdirs = [subdir.path for subdir in os.scandir() if subdir.path.replace('./', '') not in self._EXCLUDED_SEARCH_DIRS]
+        for subdir in subdirs:
+            logger.debug("Scanning directory for Kconfig files: %s", subdir)
+            found_kconfigs = [re.search(file.path, self._KCONFIG_FILE_REGEX)[1:] for file in os.scandir(subdir) if re.search(file.path, self._KCONFIG_FILE_REGEX)]
+            print(found_kconfigs)
+
+
 class ConfigMerger:
     def __init__(self,
                  base_file,
@@ -294,6 +321,7 @@ class ConfigMerger:
             logger.error("No merge files or custom parameters specified")
 
         if not self.no_make:
+            test_kconfig = KConfig()
             self.write_config()
             self.make_config()
             make_processed_config = KernelConfig(self.out_file_name)
