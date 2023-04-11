@@ -35,17 +35,22 @@ class ColorLognameFormatter(logging.Formatter):
     _sred_str = '\x1b[38;5;196m'
     _bred_str = '\x1b[31;1m'
     # Make the basic strings
-    _debug_color_str = f"{_grey_str}DEBUG{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_grey_str), ' ')
-    _info_color_str = f"{_blue_str}INFO{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_blue_str), ' ')
-    _warn_color_str = f"{_yllw_str}WARNING{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_yllw_str), ' ')
-    _error_color_str = f"{_sred_str}ERROR{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_sred_str), ' ')
-    _crit_color_str = f"{_bred_str}CRITICAL{_reset_str}".ljust(_level_str_len + len(_reset_str) + len(_bred_str), ' ')
+    _debug_color_str = f"{_grey_str}DEBUG{_reset_str}".ljust(
+        _level_str_len + len(_reset_str) + len(_grey_str), ' ')
+    _info_color_str = f"{_blue_str}INFO{_reset_str}".ljust(
+        _level_str_len + len(_reset_str) + len(_blue_str), ' ')
+    _warn_color_str = f"{_yllw_str}WARNING{_reset_str}".ljust(
+        _level_str_len + len(_reset_str) + len(_yllw_str), ' ')
+    _error_color_str = f"{_sred_str}ERROR{_reset_str}".ljust(
+        _level_str_len + len(_reset_str) + len(_sred_str), ' ')
+    _crit_color_str = f"{_bred_str}CRITICAL{_reset_str}".ljust(
+        _level_str_len + len(_reset_str) + len(_bred_str), ' ')
     # Format into a dict
     _color_levelname = {'DEBUG': _debug_color_str,
                         'INFO': _info_color_str,
                         'WARNING': _warn_color_str,
                         'ERROR': _error_color_str,
-                        'CRITICAL': _error_color_str}
+                        'CRITICAL': _crit_color_str}
 
     def __init__(self, fmt='%(levelname)s | %(message)s', *args, **kwargs):
         super().__init__(fmt, *args, **kwargs)
@@ -53,8 +58,17 @@ class ColorLognameFormatter(logging.Formatter):
     def format(self, record):
         # When calling format, replace the levelname with a colored version
         # Note: the string size is greatly increased because of the color codes
-        record.levelname = self._color_levelname[record.levelname]
-        return super().format(record)
+        if record.levelname in self._color_levelname:
+            old_levelname = record.levelname
+            record.levelname = self._color_levelname[record.levelname]
+        format_str = super().format(record)
+
+        try:
+            record.levelname = old_levelname
+        except NameError:
+            pass
+
+        return format_str
 
 
 logger = logging.getLogger(__name__)
@@ -262,7 +276,7 @@ class KConfig:
     _KCONFIG_FILE_REGEX = re.compile(r"/(Kconfig)(\.|-)?([a-zA-Z0-9])*$")
     _EXCLUDED_SEARCH_DIRS = ['Documentation']
 
-    def __init__(self):  
+    def __init__(self):
         logger.debug("Initializing KConfig")
         self._load()
 
@@ -325,7 +339,7 @@ class ConfigMerger:
             logger.error("No merge files or custom parameters specified")
 
         if not self.no_make:
-            test_kconfig = KConfig()
+            # test_kconfig = KConfig()
             self.write_config()
             self.make_config()
             make_processed_config = KernelConfig(self.out_file_name)
