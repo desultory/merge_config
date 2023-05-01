@@ -1,10 +1,45 @@
 """
 Colors the loglevel by modifying the log record
 """
-__version__ = '1.0.1'
+__version__ = '1.2.1'
 __author__ = 'desultory'
 
 import logging
+from sys import modules
+
+
+def class_logger(cls):
+    """
+    Decorator for classes to add a logging object and log basic tasks
+    """
+    class ClassWrapper(cls):
+        __name__ = cls.__name__
+        __module__ = cls.__module__
+        __qualname__ = cls.__qualname__
+
+        def __init__(self, *args, **kwargs):
+            module = modules[cls.__module__]
+            module_version = getattr(module, '__version__', 'unknown')
+
+            if isinstance(kwargs.get('logger'), logging.Logger):
+                self.logger = kwargs.pop('logger').getChild(cls.__name__)
+            else:
+                self.logger = logging.getLogger().getChild(cls.__name__)
+
+            if not self.logger.handlers and not logging.getLogger().handlers:
+                color_stream_handler = logging.StreamHandler()
+                color_stream_handler.setFormatter(ColorLognameFormatter())
+                self.logger.addHandler(color_stream_handler)
+
+            self.logger.info("Module version: %s, Class version: %s", module_version, getattr(cls, '__version__', 'unknown'))
+
+            super().__init__(*args, **kwargs)
+
+        def __setattr__(self, name, value):
+            super().__setattr__(name, value)
+            self.logger.log(5, "Set '%s' to: %s" % (name, value))
+
+    return ClassWrapper
 
 
 class ColorLognameFormatter(logging.Formatter):

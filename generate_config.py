@@ -3,11 +3,14 @@
 Used to create kernel configuration files for specific hardware configurations
 """
 
-__version__ = "0.0.1"
+__version__ = "0.0.3"
 
 from CustomLogging import class_logger
+
+from jinja2 import Environment, PackageLoader, select_autoescape
 import logging
 import re
+import yaml
 
 logging.root.setLevel(10)
 
@@ -51,6 +54,18 @@ class LinuxKernelConfigParameter:
             self.defined = False
 
     @staticmethod
+    def parse_file(file):
+        """ Parses a yaml file, returns a list of LinuxKernelConfigParameters"""
+        import yaml
+        yaml_dict = yaml.safe_load(file)
+
+        config_items = list()
+        for name, value in yaml_dict.items():
+            config_items.append(LinuxKernelConfigParameter(name, value))
+
+        return config_items
+
+    @staticmethod
     def _validate_name(name):
         """Validates the characters in a kernel config parameter name"""
         invalid_name_chars = r'[^a-zA0-Z_0-9]'
@@ -70,4 +85,14 @@ class LinuxKernelConfigParameter:
 
 
 if __name__ == '__main__':
-    kconfig = LinuxKernelConfigParameter('cgroups', 'y')
+    with open('config.yaml', 'r') as f:
+        base_config = yaml.safe_load(f)
+
+    templates = base_config.pop('templates')
+
+    jinja_env = Environment(loader=PackageLoader("generate_config"), autoescape=select_autoescape())
+
+    for template in templates:
+        jinja_template = jinja_env.get_template(template)
+        print(jinja_template.render(**base_config))
+
