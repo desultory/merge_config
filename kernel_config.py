@@ -135,30 +135,51 @@ class KernelDict(dict):
         self._config_values = config_values
 
     def __setitem__(self, key, value):
-        if key in self:
-            self.logger.warning("Key is already defined: %s" % key)
-        self.update_value(key, value)
+        """
+        Tries to generate a new linux kernel config parameter based on the supplied information
+        passes it to the update function which should handle merging
+        """
 
-    def update_value(self, key, value):
+        config_parameter = self.gen_config_obj_from_dict(key, value)
+        self.update_value(config_parameter)
+
+    def gen_config_obj_from_dict(self, name, config_values):
+        """
+        Assists in the creation of a LinuxKernelConfigParameter object
+        if config_values is just a string, sets value to that
+        if it's a dict, does advanced handling, based on how the yaml should be defined
+        """
         kwargs = dict()
         kwargs['logger'] = self.logger
-        kwargs['name'] = key
-        if value is None:
+        kwargs['name'] = name
+        if config_values is None:
             kwargs['defined'] = False
 
-        if isinstance(value, dict):
-            self.logger.info("Advanced config detected for config: %s" % key)
-            self.logger.debug("Config: %s" % value)
-            kwargs['value'] = value['value']
-            if 'description' in value:
-                kwargs['description'] = value['description']
-            if 'if' in value:
-                if True not in [self.check_expression(expression) for expression in value['if']]:
-                    self.logger.warning("All tests failed for: %s" % value)
+        if isinstance(config_values, dict):
+            self.logger.info("Advanced config detected for config: %s" % name)
+            self.logger.debug("Config: %s" % config_values)
+            kwargs['value'] = config_values['value']
+            if 'description' in config_values:
+                kwargs['description'] = config_values['description']
+            if 'if' in config_values:
+                if True not in [self.check_expression(expression) for expression in config_values['if']]:
+                    self.logger.warning("All tests failed for: %s" % config_values)
                     return
         else:
-            kwargs['value'] = value
-        super().__setitem__(key, LinuxKernelConfigParameter(**kwargs))
+            kwargs['value'] = config_values
+        return LinuxKernelConfigParameter(**kwargs)
+
+    def update_value(self, value):
+        """
+        Updates a dict key to a valid LinuxKernelConfigParameter object
+        """
+        if not isinstance(value, LinuxKernelConfigParameter):
+            raise ValueError("Value is not a LinuxKernelConfigParamter: %s" % value)
+
+        if value.name in self:
+            self.logger.warning("Key is already defined: %s" % self[value.name])
+
+        super().__setitem__(value.name, value)
 
     def check_expression(self, expression):
         self.logger.debug("Checking expression: %s" % expression)
@@ -189,6 +210,7 @@ class LinuxKernelConfig:
             self.from_config_file(kernel_config_file)
 
         self.logger.info("Parsed config parameters:\n%s" % self.config_parameters)
+        self.logger.debug(repr(self.config_parameters))
 
     def load_config(self, file_name: str):
         """ Loads the config from a file """
