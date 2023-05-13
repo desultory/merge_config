@@ -4,7 +4,7 @@ A collection of classes and other code to define linux kernel .config
 """
 
 __author__ = "desultory"
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 from custom_logging import class_logger
 
@@ -39,12 +39,11 @@ class LinuxKernelConfigParameter:
     def __init__(self, *args, **kwargs):
         for component_name, specification in self.components.items():
             self.logger.debug("Checking kwargs for component: %s" % component_name)
-            if specification.get('required'):
-                setattr(self, component_name, kwargs.pop(component_name, specification.get('default')))
-            else:
-                passed_parameter = kwargs.pop(component_name, specification.get('default'))
-                if passed_parameter is not None:
-                    setattr(self, component_name, kwargs.pop(component_name, specification.get('default')))
+            self.logger.debug("Kwarg value: %s" % kwargs.get(component_name))
+            value = kwargs.pop(component_name, specification.get('default'))
+            self.logger.debug("Computed value: %s" % value)
+            if specification.get('required') or value is not None:
+                setattr(self, component_name, value)
 
         while kwargs:
             self.logger.warning("Unable to process kwarg: %s=%s" % kwargs.popitem())
@@ -84,7 +83,7 @@ class LinuxKernelConfigParameter:
         """
         if self.defined is False:
             return True
-        return True if search(LinuxKernelConfigParameter._valid_value_chars, value) else False
+        return True if search(self._valid_value_chars, value) else False
 
     def __str__(self):
         """ Returns a string representation of how this kernel config should be specified in a kernel .config """
