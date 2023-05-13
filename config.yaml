@@ -3,19 +3,22 @@ features:
   - ipv6
   - initramfs
   #- serial
+  - amd
+  - docker
+  - virtualization
 
 root_label: "LABEL=rootfs"
 
 templates:
   - base.config
-  - fs-basic.config
-  - fs-fuse.config
-  - host-amd.config
-  - host-gentoo.config
-  - host-x86_64.config
-  - kspp.config
-  - storage-crypt.config
-  - storage-nvme.config
-  - storage-usb.config
-  - virt-docker.config
-  - virt-general.config
+  #- fs-basic.config
+  #- fs-fuse.config
+  #- host-amd.config
+  #- host-gentoo.config
+  #- host-x86_64.config
+  #- kspp.config
+  #- storage-crypt.config
+  #- storage-nvme.config
+  #- storage-usb.config
+  #- virt-docker.config
+  #- virt-general.config

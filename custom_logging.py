@@ -1,7 +1,7 @@
 """
 Colors the loglevel by modifying the log record
 """
-__version__ = '1.3.0'
+__version__ = '1.3.5'
 __author__ = 'desultory'
 
 import logging
@@ -18,25 +18,32 @@ def class_logger(cls):
         __qualname__ = cls.__qualname__
 
         def __init__(self, *args, **kwargs):
-            module = modules[cls.__module__]
-            module_version = getattr(module, '__version__', 'unknown')
+            parent_logger = kwargs.pop('logger') if isinstance(kwargs.get('logger'), logging.Logger) else logging.getLogger()
+            self.logger = parent_logger.getChild(cls.__name__)
 
-            if isinstance(kwargs.get('logger'), logging.Logger):
-                self.logger = kwargs.pop('logger').getChild(cls.__name__)
-            else:
-                self.logger = logging.getLogger().getChild(cls.__name__)
-
-            if not self.logger.handlers and not logging.getLogger().handlers:
+            if not self.logger.handlers and not parent_logger.handlers:
                 color_stream_handler = logging.StreamHandler()
                 color_stream_handler.setFormatter(ColorLognameFormatter())
                 self.logger.addHandler(color_stream_handler)
 
-            self.logger.info("Module version: %s, Class version: %s", module_version, getattr(cls, '__version__', 'unknown'))
+            self.logger.info("Intializing class: %s" % cls.__name__)
+
+            if args:
+                self.logger.debug("Args: %s" % args)
+            if kwargs:
+                self.logger.debug("Kwargs: %s" % kwargs)
+            if module_version := getattr(modules[cls.__module__], '__version__', None):
+                self.logger.info("Module version: %s" % module_version)
+            if class_version := getattr(cls, '__version__', None):
+                self.logger.info("Class version: %s" % class_version)
 
             super().__init__(*args, **kwargs)
 
         def __setattr__(self, name, value):
             super().__setattr__(name, value)
+            if not isinstance(self.logger, logging.Logger):
+                raise ValueError("The logger is not defined")
+
             if isinstance(value, list) or isinstance(value, dict) or isinstance(value, str) and "\n" in value:
                 self.logger.log(5, "Set '%s' to:\n%s" % (name, value))
             else:

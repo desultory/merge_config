@@ -1,0 +1,87 @@
+expert:
+  value: y
+  description: enable expert mode
+binfmt_elf: y
+printk: y
+printk_time: y
+futex: y
+fhandle: y
+localversion_auto: y
+bsd_process_acct: y
+compaction: y
+proc_fs: y
+sched_omit_frame_pointer: y
+proc_sysctl: y
+rseq: y
+io_uring: y
+advise_syscalls: y
+membarrier: y
+devtmpfs: y
+devtmpfs_mount: y
+devtmpfs_safe: y
+tmpfs_posix_acl: y
+tmpfs_xattr: y
+prevent_firmware_build:
+  value: y
+  description: don't use drivers which need external firmware
+standalone: y
+posix_timers: y
+high_res_timers: y
+no_hz_idle: y
+no_hz: y
+hz: 1000
+hz_1000: y
+multiuser: y
+cross_memory_attach: y
+sgetmask_syscall: y
+dnotify: y
+processor_select: y
+cpu_isolation: y
+trim_unused_ksyms: y
+module_sig: y
+module_sig_format: y
+module_sig_force: y
+module_sig_all: y
+module_sig_sha512: y
+module_sig_hash: "sha512"
+module_sig_key: "certs/signing_key.pem"
+system_data_verification: y
+module_unload:
+  value: y
+  description: Required for module tracking
+module_unload_taint_tracking: y
+input: y
+hid_generic: y
+hid: y
+input_keyboard: y
+keyboard_atkbd: y
+net: y
+inet: y
+unix: y
+ipv6:
+  value: y
+  if:
+    - value: ipv6
+      in: features
+blk_dev_initrd: 
+  value: y
+  if:
+    - value: initramfs
+      in: features
+rd_gzip: y
+acpi_table_upgrade: y
+
+efi_stub: 
+  value: y
+  if:
+    - value: efi_stub
+      in: features
+cmdline_bool: y
+
+# TODO:
+#  {% if 'serial' in features %}
+#cmdline: "root={{root_label}} ro earlyprintk console=tty0 console=tty{{serial_port}},115200n8"
+#{% else %}
+#cmdline: "root={{root_label}} ro earlyprintk console=tty0"
+#{% endif %}
+#{% endif %}
